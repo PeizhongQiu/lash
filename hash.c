@@ -77,6 +77,7 @@ void hashInit(Hash *hash, uint64_t depth)
         newMseg->seg[2] = NULL;
         init_dir->mseg[i] = newMseg;
     }
+    hash->dir = init_dir;
 }
 
 int hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
