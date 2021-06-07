@@ -1,5 +1,4 @@
 #include "memory_management.h"
-#include "hash.h"
 #include <libpmem.h>
 #define PATH "/mypmemfs/ALLOC_FILE"
 
@@ -25,9 +24,9 @@ void *add_pmalloc(size_t size)
 }
 
 
-void *getNvmBlock(int type)
+Segment *getNvmBlock(int type)
 {
-    void *newBlock = add_pmalloc(sizeof(Segment));
+    Segment *newBlock = (Segment *)add_pmalloc(sizeof(Segment));
     if (!newBlock)
     {
         printf("newBlock creation fails: nvm\n");

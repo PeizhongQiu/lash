@@ -5,5 +5,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-void *getNvmBlock(int type);
+#include "hash.h"
+
+Segment *getNvmBlock(int type);
 #endif
