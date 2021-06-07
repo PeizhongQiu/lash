@@ -81,7 +81,6 @@ void hashInit(Hash *hash, uint64_t depth)
 
 int hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
 {
-retry:
     uint64_t hash_key = hash_64(new_key);
     Dir *dir = hash->dir;
     uint64_t index = hash_key >> (KEY_BIT - dir->depth - 1);
@@ -163,7 +162,7 @@ retry:
         mseg->metadata[0] = 0;
         mseg->metadata[1] = 0;
         mseg->metadata[2] = SEGMENT_SIZE;
-        int i;
+
         for (i = 0; i < SEGMENT_SIZE; ++i)
         {
             uint64_t cur_hash_key = hash_64(mseg->seg[2]->_[i].key);
@@ -177,7 +176,7 @@ retry:
         }
         ++mseg->metadata[3];
         mseg->seg[2] = NULL;
-        goto retry;
+        hashInsert(hash,new_key,new_value);
     }
     return 0;
 }

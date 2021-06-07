@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     gettimeofday(&start, NULL);
     for (i = 0; i < test_item_number; ++i)
     {
-        hashSearch(&hash, vector[j]);
+        hashSearch(&hash, vector[i]);
     }
     gettimeofday(&end, NULL);
     mfence();
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     gettimeofday(&start, NULL);
     for (i = 0; i < test_item_number; ++i)
     {
-        hashSearch(&hash, vector[j]);
+        hashSearch(&hash, vector[i]);
     }
     gettimeofday(&end, NULL);
     mfence();
