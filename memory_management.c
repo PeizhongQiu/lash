@@ -5,8 +5,9 @@
 
 unsigned long long malloc_num = 0;
 
-void *add_pmalloc(size_t size, size_t *mapped_len)
+void *add_pmalloc(size_t size)
 {
+    size_t mapped_len;
     char path[100];
     sprintf(path, "%s%llu", PATH, malloc_num);
 
@@ -14,7 +15,7 @@ void *add_pmalloc(size_t size, size_t *mapped_len)
     int is_pmem;
     /* create a pmem file and memory map it */
     if ((pmemaddr = pmem_map_file(path, size, PMEM_FILE_CREATE,
-                                  0666, mapped_len, &is_pmem)) == NULL)
+                                  0666, &mapped_len, &is_pmem)) == NULL)
     {
         return NULL;
     }
@@ -26,9 +27,7 @@ void *add_pmalloc(size_t size, size_t *mapped_len)
 
 void *getNvmBlock(int type)
 {
-    size_t mapped_len;
-    
-    void *newBlock = add_pmalloc(sizeof(Segment),&mapped_len);
+    void *newBlock = add_pmalloc(sizeof(Segment));
     if (!newBlock)
     {
         printf("newBlock creation fails: nvm\n");
