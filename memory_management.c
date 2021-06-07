@@ -3,7 +3,7 @@
 #include <libpmem.h>
 #define PATH "/mypmemfs/ALLOC_FILE"
 
-long long malloc_num = 0;
+unsigned long long malloc_num = 0;
 
 void *add_pmalloc(size_t size, size_t *mapped_len)
 {
