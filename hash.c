@@ -105,9 +105,10 @@ int hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         newMseg->seg[2] = mseg->seg[1];
         newMseg->metadata[0] = 0;
         newMseg->metadata[1] = 0;
-        newMseg->metadata[2] = SEGMENT_SIZE;
+        newMseg->metadata[2] = mseg->metadata[1];
 
         mseg->seg[2] = mseg->seg[0];
+        mseg->metadata[2] = mseg->metadata[0];
 
         //update dir
         uint64_t i;
@@ -143,17 +144,19 @@ int hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         }
 
         //将newMseg->seg[2]分裂到newMseg->seg[0]和newMseg->seg[1]
-        for (i = 0; i < SEGMENT_SIZE; ++i)
+        for (i = 0; i < newMseg->metadata[2]; ++i)
         {
             uint64_t cur_hash_key = hash_64(newMseg->seg[2]->_[i].key);
             uint64_t cur_index = (cur_hash_key >> (KEY_BIT - mseg->metadata[3] - 2)) & 1;
             Segment *new_seg = newMseg->seg[cur_index];
             new_seg->_[newMseg->metadata[cur_index]].key = newMseg->seg[2]->_[i].key;
             new_seg->_[newMseg->metadata[cur_index]].value = newMseg->seg[2]->_[i].value;
-            pmem_persist(&new_seg->_[newMseg->metadata[cur_index]], sizeof(Pair));
+            
             ++newMseg->metadata[cur_index];
             --newMseg->metadata[2];
         }
+        pmem_persist(newMseg->seg[0],sizeof(Segment));
+        pmem_persist(newMseg->seg[1],sizeof(Segment));
         newMseg->metadata[3] = mseg->metadata[3] + 1;
         //free newMseg->seg[2]
         newMseg->seg[2] = NULL;
@@ -163,19 +166,19 @@ int hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         //将newMseg->seg[2]分裂到newMseg->seg[0]和newMseg->seg[1]
         mseg->metadata[0] = 0;
         mseg->metadata[1] = 0;
-        mseg->metadata[2] = SEGMENT_SIZE;
-
-        for (i = 0; i < SEGMENT_SIZE; ++i)
+        
+        for (i = 0; i < mseg->metadata[0]; ++i)
         {
             uint64_t cur_hash_key = hash_64(mseg->seg[2]->_[i].key);
             uint64_t cur_index = (cur_hash_key >> (KEY_BIT - mseg->metadata[3] - 2)) & 1;
             Segment *new_seg = mseg->seg[cur_index];
-            new_seg->_[mseg->metadata[cur_index]].key = mseg->seg[2]->_->key;
-            new_seg->_[mseg->metadata[cur_index]].value = mseg->seg[2]->_->value;
-            pmem_persist(&new_seg->_[mseg->metadata[cur_index]], sizeof(Pair));
+            new_seg->_[mseg->metadata[cur_index]].key = mseg->seg[2]->_[i].key;
+            new_seg->_[mseg->metadata[cur_index]].value = mseg->seg[2]->_[i].value;
             ++mseg->metadata[cur_index];
             --mseg->metadata[2];
         }
+        pmem_persist(mseg->seg[0],sizeof(Segment));
+        pmem_persist(mseg->seg[1],sizeof(Segment));
         ++mseg->metadata[3];
         mseg->seg[2] = NULL;
         hashInsert(hash,new_key,new_value);
