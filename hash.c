@@ -84,16 +84,17 @@ int hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
 {
     uint64_t hash_key = hash_64(new_key);
     Dir *dir = hash->dir;
-    uint64_t index = hash_key >> (KEY_BIT - dir->depth - 1);
-    MulSegment *mseg = dir->mseg[index >> 1];
-    Segment *seg = mseg->seg[index & 1];
-    uint64_t seg_key_num = mseg->metadata[index & 1];
+    uint64_t index_dir = hash_key >> (KEY_BIT - dir->depth);
+    MulSegment *mseg = dir->mseg[index_dir];
+    uint64_t index_seg = (hash_key >> (KEY_BIT - mseg->metadata[3] - 1)) & 1;
+    Segment *seg = mseg->seg[index_seg];
+    uint64_t seg_key_num = mseg->metadata[index_seg];
     if (seg_key_num < SEGMENT_SIZE)
     {
         seg->_[seg_key_num].key = new_key;
         seg->_[seg_key_num].value = new_value;
         pmem_persist(&seg->_[seg_key_num], sizeof(Pair));
-        ++mseg->metadata[index & 1];
+        ++mseg->metadata[index_seg];
         return 0;
     }
     else
@@ -113,7 +114,7 @@ int hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         if (mseg->metadata[3] < dir->depth)
         {
             uint64_t stride = 1 << (dir->depth - mseg->metadata[3]);
-            uint64_t loc = (index >> 1) - ((index >> 1) & (stride - 1));
+            uint64_t loc = index_dir - (index_dir & (stride - 1));
             for (i = 0; i < stride / 2; ++i)
             {
                 dir->mseg[loc + stride / 2 + i] = newMseg;
@@ -124,9 +125,9 @@ int hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
             Dir *new_dir = malloc(sizeof(Dir));
             new_dir->depth = dir->depth + 1;
             new_dir->mseg = malloc(sizeof(MulSegment *) * (1 << new_dir->depth));
-            for (i = 0; i < (1 << (new_dir->depth)); ++i)
+            for (i = 0; i < (1 << (dir->depth)); ++i)
             {
-                if (i == (index >> 1))
+                if (i == index_dir)
                 {
                     new_dir->mseg[i * 2] = dir->mseg[i];
                     new_dir->mseg[i * 2 + 1] = newMseg;
@@ -145,12 +146,12 @@ int hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         for (i = 0; i < SEGMENT_SIZE; ++i)
         {
             uint64_t cur_hash_key = hash_64(newMseg->seg[2]->_[i].key);
-            uint64_t index = (cur_hash_key >> (KEY_BIT - mseg->metadata[3] - 2)) & 1;
-            Segment *new_seg = newMseg->seg[index];
-            new_seg->_[newMseg->metadata[index]].key = newMseg->seg[2]->_[i].key;
-            new_seg->_[newMseg->metadata[index]].value = newMseg->seg[2]->_[i].value;
-            pmem_persist(&new_seg->_[newMseg->metadata[index]], sizeof(Pair));
-            ++newMseg->metadata[index];
+            uint64_t cur_index = (cur_hash_key >> (KEY_BIT - mseg->metadata[3] - 2)) & 1;
+            Segment *new_seg = newMseg->seg[cur_index];
+            new_seg->_[newMseg->metadata[cur_index]].key = newMseg->seg[2]->_[i].key;
+            new_seg->_[newMseg->metadata[cur_index]].value = newMseg->seg[2]->_[i].value;
+            pmem_persist(&new_seg->_[newMseg->metadata[cur_index]], sizeof(Pair));
+            ++newMseg->metadata[cur_index];
             --newMseg->metadata[2];
         }
         newMseg->metadata[3] = mseg->metadata[3] + 1;
@@ -167,13 +168,13 @@ int hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         for (i = 0; i < SEGMENT_SIZE; ++i)
         {
             uint64_t cur_hash_key = hash_64(mseg->seg[2]->_[i].key);
-            uint64_t index = (cur_hash_key >> (KEY_BIT - mseg->metadata[3] - 2)) & 1;
-            Segment *new_seg = mseg->seg[index];
-            new_seg->_[mseg->metadata[index]].key = mseg->seg[2]->_->key;
-            new_seg->_[mseg->metadata[index]].value = mseg->seg[2]->_->value;
-            pmem_persist(&new_seg->_[newMseg->metadata[index]], sizeof(Pair));
-            ++mseg->metadata[index];
-            --newMseg->metadata[2];
+            uint64_t cur_index = (cur_hash_key >> (KEY_BIT - mseg->metadata[3] - 2)) & 1;
+            Segment *new_seg = mseg->seg[cur_index];
+            new_seg->_[mseg->metadata[cur_index]].key = mseg->seg[2]->_->key;
+            new_seg->_[mseg->metadata[cur_index]].value = mseg->seg[2]->_->value;
+            pmem_persist(&new_seg->_[mseg->metadata[cur_index]], sizeof(Pair));
+            ++mseg->metadata[cur_index];
+            --mseg->metadata[2];
         }
         ++mseg->metadata[3];
         mseg->seg[2] = NULL;
@@ -186,9 +187,10 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
 {
     uint64_t hash_key = hash_64(key);
     Dir *dir = hash->dir;
-    uint64_t index = hash_key >> (KEY_BIT - dir->depth - 1);
-    MulSegment *mseg = dir->mseg[index >> 1];
-    Segment *seg = mseg->seg[index & 1];
+    uint64_t index_dir = hash_key >> (KEY_BIT - dir->depth);
+    MulSegment *mseg = dir->mseg[index_dir];
+    uint64_t index_seg = (hash_key >> (KEY_BIT - mseg->metadata[3] - 1)) & 1;
+    Segment *seg = mseg->seg[index_seg];
     int i;
     for (i = 0; i < SEGMENT_SIZE; ++i)
     {
