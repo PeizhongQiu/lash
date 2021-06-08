@@ -28,16 +28,16 @@ int main(int argc, char *argv[])
         printf("key:%d insert...\n", vector[i]);
         hashInsert(&hash, vector[i], i+1);
         printf("key:%d insert success\n", vector[i]);
-        // int j;
-        // for (j = 0; j < i; ++j)
-        // {
-        //     uint64_t p = hashSearch(&hash, vector[j]);
-        //     if (p != (j+1))
-        //     {
-        //         printf("error in insert %d %d!\n", vector[j], j);
-        //         return -1;
-        //     }
-        // }
+        int j;
+        for (j = 0; j < i; ++j)
+        {
+            uint64_t p = hashSearch(&hash, vector[j]);
+            if (p != (j+1))
+            {
+                printf("error in insert %d %d!\n", vector[j], j);
+                return -1;
+            }
+        }
     }
     printf("insert success!!!\n");
     return 0;
