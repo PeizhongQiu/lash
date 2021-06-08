@@ -1,5 +1,5 @@
-#ifndef MEM_H
-#define MEM_H
+#ifndef LASH_MEM_H
+#define LASH_MEM_H
 
 #include <stdio.h>
 #include <stdlib.h>
