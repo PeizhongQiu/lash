@@ -19,9 +19,9 @@ int main(int argc, char *argv[])
 {
     TEST test = {{0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80, 0x90, 0xa0}, 0x123456789abcdef};
     __m128i m1 = _mm_loadu_si128((__m128i *)test.fp);
-    __m128i m2 = _mm_set1_epi8(0x80);
-    __m128i m3 = _mm_cmpgt_epi8(m1, m2);
-    int32_t mask = _mm_movemask_epi8(m3);
-    printf("%d\n", mask);
+    int32_t mask = _mm_movemask_epi8(m1);
+    //__m128i m2 = _mm_set1_epi8(0x80);
+    //__m128i m3 = _mm_cmpgt_epi8(m1, m2);
+    printf("%x\n", mask);
     return 0;
 }
