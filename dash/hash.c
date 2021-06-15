@@ -446,9 +446,15 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     Segment *seg = mseg->seg[index_seg];
     uint64_t bucket_index = (hash_key >> FP_BIT) & BUCKET_INDEX_MASK;
     Bucket first_bucket = seg->_[bucket_index];
-    _mm_set_epi8(first_bucket.metadata.fp[0],first_bucket.metadata.fp[0],first_bucket.metadata.fp[0],
-                first_bucket.metadata.fp[0],first_bucket.metadata.fp[0],first_bucket.metadata.fp[0],
-                first_bucket.metadata.fp[0]);
+    __m128i fp = _mm_set_epi8(first_bucket.metadata.fp[0],first_bucket.metadata.fp[1],first_bucket.metadata.fp[2],
+                first_bucket.metadata.fp[3],first_bucket.metadata.fp[4],first_bucket.metadata.fp[5],
+                first_bucket.metadata.fp[6],first_bucket.metadata.fp[7],first_bucket.metadata.fp[8],
+                first_bucket.metadata.fp[9],first_bucket.metadata.fp[10], 0, 0, 0, 0, 0);
+    uint8_t search_fp = hash_key & 0xff;
+    __m128i key_data = _mm_set1_epi8(search_fp);
+    __m128i rv_mask = _mm_cmpeq_epi8(fp, key_data);        \
+    uint32_t mask = _mm_movemask_epi8(rv_mask);
+    
     Bucket second_bucket = seg->_[(bucket_index + 1)%SEGMENT_SIZE];
 
 }

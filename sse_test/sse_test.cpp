@@ -27,11 +27,13 @@ int main(int argc, char *argv[])
     __m128i m2 = _mm_set_epi8(test.fp[0],test.fp[1],test.fp[2],test.fp[3],
                                 test.fp[4],test.fp[5],test.fp[6],test.fp[7],
                                 test.fp[8],test.fp[9],test.fp[10],0,0,0,0,0);
+    __m128i m4 = _mm_set1_epi8(0x80);
     val = (uint16_t*) &m2;
     printf("Numerical: %x %x %x %x %x %x %x %x \n", 
            val[0], val[1], val[2], val[3], val[4], val[5], 
            val[6], val[7]);                            
-    //__m128i m3 = _mm_cmpgt_epi8(m1, m2);
+    __m128i m3 = _mm_cmpeq_epi8(m4, m2);
+    mask = _mm_movemask_epi8(m3);
     printf("%x\n", mask);
     return 0;
 }
