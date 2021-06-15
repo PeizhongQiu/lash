@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     TEST test = {{0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80, 0x90, 0xa0}, 0x123456789abcdef};
     __m128i m1 = _mm_loadu_si128((__m128i *)test.fp);
     uint16_t *val = (uint16_t*) &m1;
-    printf("Numerical: %x %i %x %x %x %x %x %x \n", 
+    printf("Numerical: %x %x %x %x %x %x %x %x \n", 
            val[0], val[1], val[2], val[3], val[4], val[5], 
            val[6], val[7]);
     int32_t mask = _mm_movemask_epi8(m1);
