@@ -1,6 +1,9 @@
 #include "hash.h"
 #include "memory_management.h"
-#include <math.h>
+#include <immintrin.h>
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#include <mmintrin.h>
 
 //hash function
 size_t unaligned_load(const char *p)
@@ -443,7 +446,9 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     Segment *seg = mseg->seg[index_seg];
     uint64_t bucket_index = (hash_key >> FP_BIT) & BUCKET_INDEX_MASK;
     Bucket first_bucket = seg->_[bucket_index];
-    
+    _mm_set_epi8(first_bucket.metadata.fp[0],first_bucket.metadata.fp[0],first_bucket.metadata.fp[0],
+                first_bucket.metadata.fp[0],first_bucket.metadata.fp[0],first_bucket.metadata.fp[0],
+                first_bucket.metadata.fp[0]);
     Bucket second_bucket = seg->_[(bucket_index + 1)%SEGMENT_SIZE];
 
 }
