@@ -9,31 +9,20 @@
 #include <xmmintrin.h> //sse header file(include mmx header file)
 #include <emmintrin.h> //sse2 header file(include sse header file)
 
-typedef struct TEST
+uint16_t getMask()
 {
-    uint8_t fp[11];
-    uint64_t others;
-} TEST;
+    __m128i first_fp = _mm_set_epi8(0, 0, 0, 0, 0, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+    uint8_t search_fp = 1;
+    printf("search_fp: %x\n", search_fp);
+    __m128i key_data = _mm_set1_epi8(search_fp);
+    __m128i rv_mask = _mm_cmpeq_epi8(first_fp, key_data);
+    uint16_t mask = _mm_movemask_epi8(rv_mask);
+    printf("mask: %x\n", mask);
+    return mask;
+}
 
 int main(int argc, char *argv[])
 {
-    TEST test = {{0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80, 0x90, 0xa0}, 0x123456789abcdef};
-    __m128i m1 = _mm_loadu_si128((__m128i *)test.fp);
-    uint16_t *val = (uint16_t*) &m1;
-    printf("Numerical: %x %x %x %x %x %x %x %x \n", 
-           val[0], val[1], val[2], val[3], val[4], val[5], 
-           val[6], val[7]);
-    int32_t mask = _mm_movemask_epi8(m1);
-    __m128i m2 = _mm_set_epi8(test.fp[0],test.fp[1],test.fp[2],test.fp[3],
-                                test.fp[4],test.fp[5],test.fp[6],test.fp[7],
-                                test.fp[8],test.fp[9],test.fp[10],0,0,0,0,0);
-    __m128i m4 = _mm_set1_epi8(0x80);
-    val = (uint16_t*) &m2;
-    printf("Numerical: %x %x %x %x %x %x %x %x \n", 
-           val[0], val[1], val[2], val[3], val[4], val[5], 
-           val[6], val[7]);                            
-    __m128i m3 = _mm_cmpeq_epi8(m4, m2);
-    mask = _mm_movemask_epi8(m3);
-    printf("%x\n", mask);
+    getMask();
     return 0;
 }

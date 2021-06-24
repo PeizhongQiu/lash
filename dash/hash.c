@@ -580,6 +580,26 @@ uint64_t bucketSearch(uint16_t index, Bucket bck, uint64_t key)
     return 0;
 }
 
+uint16_t getMask(Bucket bck, uint64_t hash_key)
+{
+    __m128i first_fp = _mm_set_epi8(0, 0, 0, 0, 0, getMetadata(bck).fp[10],getMetadata(bck).fp[9],
+                getMetadata(bck).fp[8],getMetadata(bck).fp[7],getMetadata(bck).fp[6],
+                getMetadata(bck).fp[5],getMetadata(bck).fp[4],getMetadata(bck).fp[3],
+                getMetadata(bck).fp[2],getMetadata(bck).fp[1],getMetadata(bck).fp[0]);
+    printf("fp: %x %x %x %x %x %x %x %x %x %x %x\n", 
+           getMetadata(bck).fp[0], getMetadata(bck).fp[1], getMetadata(bck).fp[2], 
+           getMetadata(bck).fp[3], getMetadata(bck).fp[4], getMetadata(bck).fp[5], 
+           getMetadata(bck).fp[6], getMetadata(bck).fp[7], getMetadata(bck).fp[8],
+           getMetadata(bck).fp[9], getMetadata(bck).fp[10]);
+    uint8_t search_fp = hash_key & 0xff;
+    printf("search_fp: %x\n", search_fp);
+    __m128i key_data = _mm_set1_epi8(search_fp);
+    __m128i rv_mask = _mm_cmpeq_epi8(first_fp, key_data);
+    uint16_t mask = _mm_movemask_epi8(rv_mask);
+    printf("mask: %x\n", mask);
+    return mask;
+}
+
 //return 0 means can't search
 uint64_t hashSearch(Hash *hash, uint64_t key)
 {
@@ -591,15 +611,8 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     Segment *seg = mseg->seg[index_seg];
     uint64_t bucket_index = (hash_key >> FP_BIT) & BUCKET_INDEX_MASK;
     Bucket first_bucket = seg->_[bucket_index];
-    __m128i first_fp = _mm_set_epi8(0, 0, 0, 0, 0, getMetadata(first_bucket).fp[10],getMetadata(first_bucket).fp[9],
-                getMetadata(first_bucket).fp[8],getMetadata(first_bucket).fp[7],getMetadata(first_bucket).fp[6],
-                getMetadata(first_bucket).fp[5],getMetadata(first_bucket).fp[4],getMetadata(first_bucket).fp[3],
-                getMetadata(first_bucket).fp[2],getMetadata(first_bucket).fp[1],getMetadata(first_bucket).fp[0]);
     
-    uint8_t search_fp = hash_key & 0xff;
-    __m128i key_data = _mm_set1_epi8(search_fp);
-    __m128i rv_mask = _mm_cmpeq_epi8(first_fp, key_data);
-    uint16_t mask = _mm_movemask_epi8(rv_mask);
+    uint16_t mask = getMask(first_bucket, hash_key);
     uint16_t first_index = mask & getBitmap(first_bucket) & (~getMembership(first_bucket)) & 0xff;
     uint16_t first_stash_index = (mask >> 7) & getOverflowBitmap(first_bucket) 
                                 & (~getOverflowMembership(first_bucket)) & 0xf;
@@ -609,17 +622,12 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     if(result) return result;
 
     Bucket second_bucket = seg->_[(bucket_index + 1)%SEGMENT_SIZE];
-    __m128i second_fp = _mm_set_epi8(0, 0, 0, 0, 0, getMetadata(second_bucket).fp[10],getMetadata(second_bucket).fp[9],
-                getMetadata(second_bucket).fp[8],getMetadata(second_bucket).fp[7],getMetadata(second_bucket).fp[6],
-                getMetadata(second_bucket).fp[5],getMetadata(second_bucket).fp[4],getMetadata(second_bucket).fp[3],
-                getMetadata(second_bucket).fp[2],getMetadata(second_bucket).fp[1],getMetadata(second_bucket).fp[0]);
-    
-    rv_mask = _mm_cmpeq_epi8(second_fp, key_data);
-    mask = _mm_movemask_epi8(rv_mask);
+    mask = getMask(second_bucket, hash_key);
+    uint16_t second_index = mask & getBitmap(second_bucket) & getMembership(second_bucket) & 0xff;
     uint16_t second_stash_index = (mask >> 7) & getOverflowBitmap(second_bucket) 
                                 & getOverflowMembership(second_bucket) & 0xf;
     uint16_t second_over_index = getOverflowIndex(second_bucket);
-    uint16_t second_index = mask & getBitmap(second_bucket) & getMembership(second_bucket) & 0xff;
+    
     result = bucketSearch(second_index,second_bucket,key);
     if(result) return result;
 
