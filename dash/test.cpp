@@ -1,5 +1,5 @@
 #include "hash.h"
-
+#include <time.h>
 void mfence()
 {
     asm volatile("mfence" ::
