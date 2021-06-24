@@ -184,7 +184,7 @@ int bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
     setBitmap(*bck, bitmap | (1 << index));
     setMembership(*bck, (*bck).metadata.membership | (membership << index));
     setFp(*bck, index, hash_key);
-    printf("fp change: %x", bck->metadata.fp[index]);
+    printf("fp change: %x %p", bck->metadata.fp[index],bck);
     if(ispmem)
     {
         pmem_persist_BucketMetadata(*bck);
@@ -344,8 +344,8 @@ int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
 int segmentInsert(Segment *seg, uint64_t new_key, uint64_t new_value, uint64_t hash_key, int ispmem)
 {
     uint64_t bucket_index = (hash_key >> FP_BIT) & BUCKET_INDEX_MASK;
-    Bucket first_bucket = seg->_[bucket_index];
-    Bucket second_bucket = seg->_[(bucket_index + 1)%SEGMENT_SIZE];
+    Bucket &first_bucket = seg->_[bucket_index];
+    Bucket &second_bucket = seg->_[(bucket_index + 1)%SEGMENT_SIZE];
 
     uint16_t first_count = getCount(first_bucket);
     uint16_t second_count = getCount(second_bucket);
@@ -465,7 +465,7 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
 
     if (segState)
     {
-        MulSegment *newMseg = malloc(sizeof(MulSegment));
+        MulSegment *newMseg = (MulSegment *)malloc(sizeof(MulSegment));
         newMseg->seg[0] = getNvmBlock(0);
         newMseg->seg[1] = getNvmBlock(0);
         newMseg->seg[2] = mseg->seg[1];
@@ -486,9 +486,9 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         }
         else
         {
-            Dir *new_dir = malloc(sizeof(Dir));
+            Dir *new_dir = (Dir *)malloc(sizeof(Dir));
             new_dir->depth = dir->depth + 1;
-            new_dir->mseg = malloc(sizeof(MulSegment *) * (1 << new_dir->depth));
+            new_dir->mseg = (MulSegment **)malloc(sizeof(MulSegment *) * (1 << new_dir->depth));
             for (i = 0; i < (1 << (dir->depth)); ++i)
             {
                 if (i == index_dir)
@@ -581,7 +581,7 @@ uint64_t bucketSearch(uint16_t index, Bucket bck, uint64_t key)
     return 0;
 }
 
-uint16_t getMask(Bucket bck, uint64_t hash_key)
+uint16_t getMask(Bucket &bck, uint64_t hash_key)
 {
     __m128i first_fp = _mm_set_epi8(0, 0, 0, 0, 0, getMetadata(bck).fp[10],getMetadata(bck).fp[9],
                 getMetadata(bck).fp[8],getMetadata(bck).fp[7],getMetadata(bck).fp[6],
@@ -611,7 +611,7 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     uint64_t index_seg = (hash_key >> (KEY_BIT - mseg->metadata - 1)) & 1;
     Segment *seg = mseg->seg[index_seg];
     uint64_t bucket_index = (hash_key >> FP_BIT) & BUCKET_INDEX_MASK;
-    Bucket first_bucket = seg->_[bucket_index];
+    Bucket &first_bucket = seg->_[bucket_index];
     
     uint16_t mask = getMask(first_bucket, hash_key);
     uint16_t first_index = mask & getBitmap(first_bucket) & (~getMembership(first_bucket)) & 0xff;
