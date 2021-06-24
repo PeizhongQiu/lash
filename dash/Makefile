@@ -6,13 +6,13 @@ dynamic_hash: test.o memory_management.o hash.o
 dynamic_hash_valid: test_valid.o memory_management.o hash.o
 	gcc -g -o dynamic_hash_valid test_valid.o memory_management.o hash.o -lm -lpthread -lpmem
 
-test.o : test.c hash.h
-	gcc -g -c test.c
-test_valid.o : test_valid.c hash.h
-	gcc -g -c test_valid.c
-memory_management.o: memory_management.c memory_management.h hash.h
-	gcc -g -c memory_management.c 
-hash.o :hash.c hash.h memory_management.h
-	gcc -g -msse3 -c hash.c 
+test.o : test.cpp hash.h
+	gcc -g -c test.cpp
+test_valid.o : test_valid.cpp hash.h
+	gcc -g -c test_valid.cpp
+memory_management.o: memory_management.cpp memory_management.h hash.h
+	gcc -g -c memory_management.cpp
+hash.o :hash.cpp hash.h memory_management.h
+	gcc -g -msse3 -c hash.cpp
 clean:
 	rm -rf *.o

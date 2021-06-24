@@ -352,11 +352,11 @@ int segmentInsert(Segment *seg, uint64_t new_key, uint64_t new_value, uint64_t h
     if(first_count == second_count && first_count == BUCKET_SIZE)
     {
         //displace
-        Bucket prev_bucket = seg->_[(bucket_index + SEGMENT_SIZE - 1) % SEGMENT_SIZE];
+        Bucket &prev_bucket = seg->_[(bucket_index + SEGMENT_SIZE - 1) % SEGMENT_SIZE];
         int ok = bucketInsertDisplace(&first_bucket, &prev_bucket, 0, ispmem, new_key, new_value, hash_key);
         if(ok)
         {
-            Bucket next_bucket = seg->_[(bucket_index + 2) % SEGMENT_SIZE];
+            Bucket &next_bucket = seg->_[(bucket_index + 2) % SEGMENT_SIZE];
             ok = bucketInsertDisplace(&second_bucket, &next_bucket, 0x7f, ispmem, new_key, new_value, hash_key);
             if(ok)
             {
