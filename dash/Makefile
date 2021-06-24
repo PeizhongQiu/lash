@@ -13,6 +13,6 @@ test_valid.o : test_valid.c hash.h
 memory_management.o: memory_management.c memory_management.h hash.h
 	gcc -g -c memory_management.c 
 hash.o :hash.c hash.h memory_management.h
-	gcc -g -msse2 -c hash.c 
+	gcc -g -msse3 -c hash.c 
 clean:
 	rm -rf *.o
