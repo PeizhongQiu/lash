@@ -1,5 +1,4 @@
 #include "memory_management.h"
-#include <libpmem.h>
 #define PATH "/mypmemfs/ALLOC_FILE"
 
 unsigned long long malloc_num = 0;

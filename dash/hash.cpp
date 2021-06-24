@@ -88,14 +88,14 @@ size_t hash_64(size_t val)
 
 void hashInit(Hash *hash, uint64_t depth)
 {
-    Dir *init_dir = malloc(sizeof(Dir));
+    Dir *init_dir = (Dir *)malloc(sizeof(Dir));
     init_dir->depth = depth;
-    init_dir->mseg = malloc(sizeof(MulSegment *) * (1 << depth));
+    init_dir->mseg = (MulSegment **)malloc(sizeof(MulSegment *) * (1 << depth));
 
     int i;
     for (i = 0; i < (1 << depth); ++i)
     {
-        MulSegment *newMseg = malloc(sizeof(MulSegment));
+        MulSegment *newMseg = (MulSegment *)malloc(sizeof(MulSegment));
         newMseg->metadata = depth;
 
         Segment *newSeg0 = getNvmBlock(0);
