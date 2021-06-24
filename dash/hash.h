@@ -24,23 +24,22 @@ typedef struct Pair
 typedef struct BucketMetadata
 {
     uint16_t overflowIndex; //4 bits for the index of each overflow KV
-    uint16_t bitmap_membership;    //11 bits for membership, 5 bit for counter
-    uint8_t fp[11]; //4 for stash
+    uint8_t bitmap;
+    uint8_t membership;
     uint8_t over_bitmap_membership;
+    uint8_t fp[11]; //4 for stash
 }BucketMetadata;
 
+#ifdef CHEN_VERSION
 typedef struct Line0
 {
     BucketMetadata metadata;
     Pair data[3];
 }Line0;
-
 typedef struct Line1
 {
     Pair data[4];
 }Line1;
-
-#ifdef CHEN_VERSION
 typedef struct Bucket
 {
     Line0 line0;
@@ -85,7 +84,7 @@ typedef struct Hash
 } Hash;
 
 void hashInit(Hash *hash, uint64_t depth);
-int hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value);
+uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value);
 uint64_t hashSearch(Hash *hash, uint64_t key);
 
 #endif
