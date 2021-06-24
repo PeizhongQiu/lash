@@ -12,7 +12,7 @@
 uint16_t getMask()
 {
     __m128i first_fp = _mm_set_epi8(0, 0, 0, 0, 0, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
-    uint8_t search_fp = 1;
+    uint8_t search_fp = 8;
     printf("search_fp: %x\n", search_fp);
     __m128i key_data = _mm_set1_epi8(search_fp);
     __m128i rv_mask = _mm_cmpeq_epi8(first_fp, key_data);
