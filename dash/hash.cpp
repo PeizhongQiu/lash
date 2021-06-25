@@ -7,10 +7,16 @@
 
 #ifdef CHEN_VERSION
 #define getMetadata(bck) ((bck).line0.metadata)
-#define pmem_persist_BucketMetadata(bck) {pmem_persist(&(bck).line0, sizeof(Line0));}
+#define pmem_persist_BucketMetadata(bck)           \
+    {                                              \
+        pmem_persist(&(bck).line0, sizeof(Line0)); \
+    }
 #else
 #define getMetadata(bck) ((bck).metadata)
-#define pmem_persist_BucketMetadata(bck) {pmem_persist(&(bck).metadata, sizeof(BucketMetadata));}
+#define pmem_persist_BucketMetadata(bck)                       \
+    {                                                          \
+        pmem_persist(&(bck).metadata, sizeof(BucketMetadata)); \
+    }
 #endif
 
 //get the bitmap of bucket
@@ -26,12 +32,26 @@
 //get the overflow index
 #define getOverflowIndex(bck) (getMetadata(bck).overflowIndex)
 
-#define setFp(bck, index, hash_key) {getMetadata(bck).fp[index] = (hash_key) & 0xff;}
-#define setBitmap(bck, new_bitmap) {getMetadata(bck).bitmap = new_bitmap;}
-#define setMembership(bck, new_membership) {getMetadata(bck).membership = new_membership;}
-#define setOverflowBitmapMembership(bck, new_bitmap, new_membership) {getMetadata(bck).over_bitmap_membership = ((new_bitmap) << 4) + (new_membership);}
-#define setOverflowIndex(bck, bucket_index, overflow_index)  \
-    {getMetadata(bck).overflowIndex = (getMetadata(bck).overflowIndex & ~(0xf << ((bucket_index) << 2))) | ((overflow_index) << ((bucket_index) << 2));} 
+#define setFp(bck, index, hash_key)                   \
+    {                                                 \
+        getMetadata(bck).fp[index] = (hash_key)&0xff; \
+    }
+#define setBitmap(bck, new_bitmap)            \
+    {                                         \
+        getMetadata(bck).bitmap = new_bitmap; \
+    }
+#define setMembership(bck, new_membership)            \
+    {                                                 \
+        getMetadata(bck).membership = new_membership; \
+    }
+#define setOverflowBitmapMembership(bck, new_bitmap, new_membership)                      \
+    {                                                                                     \
+        getMetadata(bck).over_bitmap_membership = ((new_bitmap) << 4) + (new_membership); \
+    }
+#define setOverflowIndex(bck, bucket_index, overflow_index)                                                                                                \
+    {                                                                                                                                                      \
+        getMetadata(bck).overflowIndex = (getMetadata(bck).overflowIndex & ~(0xf << ((bucket_index) << 2))) | ((overflow_index) << ((bucket_index) << 2)); \
+    }
 
 //hash function
 size_t unaligned_load(const char *p)
@@ -115,14 +135,14 @@ void hashInit(Hash *hash, uint64_t depth)
 }
 
 #ifdef CHEN_VERSION
-uint32_t bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value, 
-                    uint64_t hash_key, uint16_t membership, int ispmem)
+uint32_t bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
+                      uint64_t hash_key, uint16_t membership, int ispmem)
 {
     uint8_t bitmap = getBitmap(*bck);
     int index = __builtin_ctz(~bitmap);
     uint8_t new_membership = getMembership(*bck);
-    
-    if(index < 3)
+
+    if (index < 3)
     {
         //metadata and data can be flushed in one flush
         bck->line0.data[index].key = new_key;
@@ -131,7 +151,7 @@ uint32_t bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
         setBitmap(*bck, bitmap | (1 << index));
         setMembership(*bck, new_membership | (membership << index));
         setFp(*bck, index, hash_key);
-        if(ispmem)
+        if (ispmem)
         {
             pmem_persist(&bck->line0, sizeof(Line0));
         }
@@ -147,7 +167,7 @@ uint32_t bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
 
         //data moving
         int i = 0;
-        while((bitmap & 0x78) != 0x78 && i < 3)
+        while ((bitmap & 0x78) != 0x78 && i < 3)
         {
             index = __builtin_ctz(~(bitmap | 0x7));
             bck->line1.data[index - 3].key = bck->line0.data[i].key;
@@ -160,7 +180,7 @@ uint32_t bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
         //update metadata
         setBitmap(*bck, bitmap);
         setMembership(*bck, new_membership);
-        if(ispmem)
+        if (ispmem)
         {
             pmem_persist(&bck->line1, sizeof(Line1));
             pmem_persist(&bck->line0, sizeof(Line0));
@@ -168,23 +188,23 @@ uint32_t bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
     }
 }
 #else
-int bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value, 
-                    uint64_t hash_key, uint16_t membership, int ispmem)
+int bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
+                 uint64_t hash_key, uint16_t membership, int ispmem)
 {
     uint8_t bitmap = getBitmap(*bck);
     uint32_t index = __builtin_ctz(~bitmap);
     bck->data[index].key = new_key;
     bck->data[index].value = new_value;
-    if(ispmem)
+    if (ispmem)
     {
         pmem_persist(&bck->data[index], sizeof(Pair));
     }
-    
+
     //update metadata
     setBitmap(*bck, bitmap | (1 << index));
     setMembership(*bck, (*bck).metadata.membership | (membership << index));
     setFp(*bck, index, hash_key);
-    if(ispmem)
+    if (ispmem)
     {
         pmem_persist_BucketMetadata(*bck);
     }
@@ -193,61 +213,61 @@ int bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
 #endif
 
 #ifdef CHEN_VERSION
-uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t membership, int ispmem, 
-                            uint64_t new_key, uint64_t new_value, uint64_t hash_key)
+uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t membership, int ispmem,
+                              uint64_t new_key, uint64_t new_value, uint64_t hash_key)
 {
     uint8_t displace_bitmap = getBitmap(*displace_bck);
     uint8_t bck_membership = getMembership(*bck);
-    if(displace_bitmap != 0x7f && bck_membership != membership)
+    if (displace_bitmap != 0x7f && bck_membership != membership)
     {
         uint8_t bck_bitmap = getBitmap(*bck);
         int bck_index = 0;
-        if(membership & 1)
+        if (membership & 1)
         {
             //membership = 7f, second_bucket to next_bucket
             bck_index = __builtin_ctz(~bck_membership);
-            if(bck_index < 3)
-                bucketInsert(displace_bck,bck->line0.data[bck_index].key,bck->line0.data[bck_index].value,
-                        hash_64(bck->line0.data[bck_index].key), 1, ispmem);
-            else 
-                bucketInsert(displace_bck,bck->line1.data[bck_index - 3].key,bck->line1.data[bck_index - 3].value,
-                        hash_64(bck->line1.data[bck_index - 3].key), 1, ispmem);
+            if (bck_index < 3)
+                bucketInsert(displace_bck, bck->line0.data[bck_index].key, bck->line0.data[bck_index].value,
+                             hash_64(bck->line0.data[bck_index].key), 1, ispmem);
+            else
+                bucketInsert(displace_bck, bck->line1.data[bck_index - 3].key, bck->line1.data[bck_index - 3].value,
+                             hash_64(bck->line1.data[bck_index - 3].key), 1, ispmem);
         }
         else
         {
             //membership = 0, first_bucket to prev_bucket
             bck_index = __builtin_ctz(bck_membership);
-            if(bck_index < 3)
-                bucketInsert(displace_bck,bck->line0.data[bck_index].key,bck->line0.data[bck_index].value,
-                        hash_64(bck->line0.data[bck_index].key), 0, ispmem);
-            else 
-                bucketInsert(displace_bck,bck->line1.data[bck_index - 3].key,bck->line1.data[bck_index - 3].value,
-                        hash_64(bck->line1.data[bck_index - 3].key), 0, ispmem);
+            if (bck_index < 3)
+                bucketInsert(displace_bck, bck->line0.data[bck_index].key, bck->line0.data[bck_index].value,
+                             hash_64(bck->line0.data[bck_index].key), 0, ispmem);
+            else
+                bucketInsert(displace_bck, bck->line1.data[bck_index - 3].key, bck->line1.data[bck_index - 3].value,
+                             hash_64(bck->line1.data[bck_index - 3].key), 0, ispmem);
         }
-        
+
         bck_bitmap = bck_bitmap & ~(1 << bck_index);
         bck_membership = bck_membership & ~(1 << bck_index);
-        setBitmap(*bck,bck_bitmap);
-        setMembership(*bck,bck_membership);
-        if(ispmem && bck_index > 3)
+        setBitmap(*bck, bck_bitmap);
+        setMembership(*bck, bck_membership);
+        if (ispmem && bck_index > 3)
         {
             pmem_persist_BucketMetadata(*bck);
         }
         bck->data[bck_index].key = new_key;
         bck->data[bck_index].value = new_value;
-        if(ispmem && bck_index > 3)
+        if (ispmem && bck_index > 3)
         {
             pmem_persist(&bck->line1.data[bck_index], sizeof(Pair));
         }
         bck_bitmap = bck_bitmap | (1 << bck_index);
-        if(membership & 1)
+        if (membership & 1)
         {
             bck_membership = bck_membership | (1 << bck_index);
         }
-        setBitmap(*bck,bck_bitmap);
-        setMembership(*bck,bck_membership);
-        setFp(*bck,bck_index,hash_key);
-        if(ispmem)
+        setBitmap(*bck, bck_bitmap);
+        setMembership(*bck, bck_membership);
+        setFp(*bck, bck_index, hash_key);
+        if (ispmem)
         {
             pmem_persist_BucketMetadata(*bck);
         }
@@ -256,54 +276,55 @@ uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t members
     return 1;
 }
 #else
-uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t membership, int ispmem, 
-                            uint64_t new_key, uint64_t new_value, uint64_t hash_key)
+uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t membership, int ispmem,
+                              uint64_t new_key, uint64_t new_value, uint64_t hash_key)
 {
     printf("Displace...\n");
     //membership = 0x7f or 0
     uint8_t displace_bitmap = getBitmap(*displace_bck);
     uint8_t bck_membership = getMembership(*bck);
-    if(displace_bitmap != 0x7f && bck_membership != membership)
+    if (displace_bitmap != 0x7f && bck_membership != membership)
     {
         uint8_t bck_bitmap = getBitmap(*bck);
         uint32_t bck_index = 0;
-        if(membership & 1)
+        if (membership & 1)
         {
-            //membership = 7f
+            //membership = 7f,second to next
             bck_index = __builtin_ctz(~bck_membership);
-            bucketInsert(displace_bck,bck->data[bck_index].key,bck->data[bck_index].value,
-                        hash_64(bck->data[bck_index].key), 1, ispmem);
+            bucketInsert(displace_bck, bck->data[bck_index].key, bck->data[bck_index].value,
+                         hash_64(bck->data[bck_index].key), 1, ispmem);
         }
         else
         {
+            //membership = 0, first to prev
             bck_index = __builtin_ctz(bck_membership);
-            bucketInsert(displace_bck,bck->data[bck_index].key,bck->data[bck_index].value,
-                        hash_64(bck->data[bck_index].key), 0, ispmem);
+            bucketInsert(displace_bck, bck->data[bck_index].key, bck->data[bck_index].value,
+                         hash_64(bck->data[bck_index].key), 0, ispmem);
         }
-        
+
         bck_bitmap = bck_bitmap & ~(1 << bck_index);
         bck_membership = bck_membership & ~(1 << bck_index);
-        setBitmap(*bck,bck_bitmap);
-        setMembership(*bck,bck_membership);
-        if(ispmem)
+        setBitmap(*bck, bck_bitmap);
+        setMembership(*bck, bck_membership);
+        if (ispmem)
         {
             pmem_persist_BucketMetadata(*bck);
         }
         bck->data[bck_index].key = new_key;
         bck->data[bck_index].value = new_value;
-        if(ispmem)
+        if (ispmem)
         {
             pmem_persist(&bck->data[bck_index], sizeof(Pair));
         }
         bck_bitmap = bck_bitmap | (1 << bck_index);
-        if(membership & 1)
+        if ((membership & 1) == 0)
         {
             bck_membership = bck_membership | (1 << bck_index);
         }
-        setBitmap(*bck,bck_bitmap);
-        setMembership(*bck,bck_membership);
-        setFp(*bck,bck_index,hash_key);
-        if(ispmem)
+        setBitmap(*bck, bck_bitmap);
+        setMembership(*bck, bck_membership);
+        setFp(*bck, bck_index, hash_key);
+        if (ispmem)
         {
             pmem_persist_BucketMetadata(*bck);
         }
@@ -313,21 +334,21 @@ uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t members
 }
 #endif
 
-int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value, 
-                    uint64_t hash_key, uint16_t membership, int ispmem)
+int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
+                uint64_t hash_key, uint16_t membership, int ispmem)
 {
     printf("stash insert...\n");
     uint16_t bitmap = stash->bitmap;
     uint64_t index = __builtin_ctz(~bitmap);
     stash->data[index].key = new_key;
     stash->data[index].value = new_value;
-    if(ispmem)
+    if (ispmem)
     {
         pmem_persist(&stash->data[index], sizeof(Pair));
     }
     //update metadata
     stash->bitmap = bitmap | (1 << index);
-    if(ispmem)
+    if (ispmem)
     {
         pmem_persist(&stash->bitmap, sizeof(uint16_t));
     }
@@ -335,9 +356,9 @@ int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
     uint8_t bucket_bitmap = getOverflowBitmap(*bck);
     uint8_t bucket_index = __builtin_ctz(~bucket_bitmap);
     setOverflowBitmapMembership(*bck, bucket_bitmap | (1 << bucket_index), getOverflowMembership(*bck) | (membership << index));
-    setOverflowIndex(*bck,bucket_index,index);
-    setFp(*bck,bucket_index + 7,hash_key);
-    if(ispmem)
+    setOverflowIndex(*bck, bucket_index, index);
+    setFp(*bck, bucket_index + 7, hash_key);
+    if (ispmem)
     {
         pmem_persist_BucketMetadata(*bck);
     }
@@ -348,30 +369,30 @@ int segmentInsert(Segment *seg, uint64_t new_key, uint64_t new_value, uint64_t h
 {
     uint64_t bucket_index = (hash_key >> FP_BIT) & BUCKET_INDEX_MASK;
     Bucket &first_bucket = seg->_[bucket_index];
-    Bucket &second_bucket = seg->_[(bucket_index + 1)%SEGMENT_SIZE];
+    Bucket &second_bucket = seg->_[(bucket_index + 1) % SEGMENT_SIZE];
 
     uint16_t first_count = getCount(first_bucket);
     uint16_t second_count = getCount(second_bucket);
-    if(first_count == second_count && first_count == BUCKET_SIZE)
+    if (first_count == second_count && first_count == BUCKET_SIZE)
     {
         //displace
         Bucket &prev_bucket = seg->_[(bucket_index + SEGMENT_SIZE - 1) % SEGMENT_SIZE];
         int ok = bucketInsertDisplace(&first_bucket, &prev_bucket, 0, ispmem, new_key, new_value, hash_key);
-        if(ok)
+        if (ok)
         {
             Bucket &next_bucket = seg->_[(bucket_index + 2) % SEGMENT_SIZE];
             ok = bucketInsertDisplace(&second_bucket, &next_bucket, 0x7f, ispmem, new_key, new_value, hash_key);
-            if(ok)
+            if (ok)
             {
                 //stash
-                if(seg->stash.bitmap != 0xffff && getOverflowBitmap(first_bucket) != 0xf)
+                if (seg->stash.bitmap != 0xffff && getOverflowBitmap(first_bucket) != 0xf)
                 {
-                    stashInsert(&seg->stash,&first_bucket,new_key,new_value,hash_key,0,ispmem);
+                    stashInsert(&seg->stash, &first_bucket, new_key, new_value, hash_key, 0, ispmem);
                     return 0;
                 }
-                if(seg->stash.bitmap != 0xffff && getOverflowBitmap(second_bucket) != 0xf)
+                if (seg->stash.bitmap != 0xffff && getOverflowBitmap(second_bucket) != 0xf)
                 {
-                    stashInsert(&seg->stash,&second_bucket,new_key,new_value,hash_key,1,ispmem);
+                    stashInsert(&seg->stash, &second_bucket, new_key, new_value, hash_key, 1, ispmem);
                     return 0;
                 }
                 //split
@@ -379,14 +400,14 @@ int segmentInsert(Segment *seg, uint64_t new_key, uint64_t new_value, uint64_t h
             }
         }
     }
-    else if(first_count <= second_count)
+    else if (first_count <= second_count)
     {
-        bucketInsert(&first_bucket,new_key,new_value,hash_key, 0,ispmem);
+        bucketInsert(&first_bucket, new_key, new_value, hash_key, 0, ispmem);
         return 0;
     }
     else
     {
-        bucketInsert(&second_bucket,new_key,new_value,hash_key, 1,ispmem);
+        bucketInsert(&second_bucket, new_key, new_value, hash_key, 1, ispmem);
         return 0;
     }
 }
@@ -394,66 +415,66 @@ int segmentInsert(Segment *seg, uint64_t new_key, uint64_t new_value, uint64_t h
 void splitSeg(MulSegment *newMseg, MulSegment *mseg)
 {
     printf("resize...\n");
-    uint64_t i,j;
+    uint64_t i, j;
     for (i = 0; i < SEGMENT_SIZE; ++i)
+    {
+        for (j = 0; j < 3; ++j)
         {
-            for(j = 0; j < 3; ++j)
+            if (getBitmap(newMseg->seg[2]->_[i]) & (1 << j))
             {
-                if(getBitmap(newMseg->seg[2]->_[i]) & (1 << j))
-                {
-                    #ifdef CHEN_VERSION
-                    uint64_t cur_key = newMseg->seg[2]->_[i].line0.data[j].key;
-                    uint64_t cur_value = newMseg->seg[2]->_[i].line0.data[j].value;
-                    uint64_t re_hash_key = hash_64(cur_key);
-                    #else
-                    uint64_t cur_key = newMseg->seg[2]->_[i].data[j].key;
-                    uint64_t cur_value = newMseg->seg[2]->_[i].data[j].value;
-                    uint64_t re_hash_key = hash_64(cur_key);
-                    #endif
-                    
-                    uint64_t index_seg = (re_hash_key >> (KEY_BIT - mseg->metadata - 2)) & 1;
-                    Segment *new_seg = newMseg->seg[index_seg];
-                    segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 0);
-                }
-            }
-            for(j = 3; j < BUCKET_SIZE; ++j)
-            {
-                if(getBitmap(newMseg->seg[2]->_[i]) & (1 << j))
-                {
-                    #ifdef CHEN_VERSION
-                    uint64_t cur_key = newMseg->seg[2]->_[i].line1.data[j-3].key;
-                    uint64_t cur_value = newMseg->seg[2]->_[i].line1.data[j-3].value;
-                    uint64_t re_hash_key = hash_64(cur_key);
-                    #else
-                    uint64_t cur_key = newMseg->seg[2]->_[i].data[j].key;
-                    uint64_t cur_value = newMseg->seg[2]->_[i].data[j].value;
-                    uint64_t re_hash_key = hash_64(cur_key);
-                    #endif
-
-                    uint64_t index_seg = (re_hash_key >> (KEY_BIT - mseg->metadata - 2)) & 1;
-                    Segment *new_seg = newMseg->seg[index_seg];
-                    segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 0);
-                }
-            }
-        }
-        for (i = 0; i < STASH_SIZE; ++i)
-        {
-            if(newMseg->seg[2]->stash.bitmap & (1 << i))
-            {
-                uint64_t cur_key = newMseg->seg[2]->stash.data[i].key;
-                uint64_t cur_value = newMseg->seg[2]->stash.data[i].value;
+#ifdef CHEN_VERSION
+                uint64_t cur_key = newMseg->seg[2]->_[i].line0.data[j].key;
+                uint64_t cur_value = newMseg->seg[2]->_[i].line0.data[j].value;
                 uint64_t re_hash_key = hash_64(cur_key);
-                
+#else
+                uint64_t cur_key = newMseg->seg[2]->_[i].data[j].key;
+                uint64_t cur_value = newMseg->seg[2]->_[i].data[j].value;
+                uint64_t re_hash_key = hash_64(cur_key);
+#endif
+
                 uint64_t index_seg = (re_hash_key >> (KEY_BIT - mseg->metadata - 2)) & 1;
                 Segment *new_seg = newMseg->seg[index_seg];
                 segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 0);
             }
         }
-        pmem_persist(newMseg->seg[0],sizeof(Segment));
-        pmem_persist(newMseg->seg[1],sizeof(Segment));
-        newMseg->metadata = mseg->metadata + 1;
-        //free newMseg->seg[2]
-        newMseg->seg[2] = NULL;
+        for (j = 3; j < BUCKET_SIZE; ++j)
+        {
+            if (getBitmap(newMseg->seg[2]->_[i]) & (1 << j))
+            {
+#ifdef CHEN_VERSION
+                uint64_t cur_key = newMseg->seg[2]->_[i].line1.data[j - 3].key;
+                uint64_t cur_value = newMseg->seg[2]->_[i].line1.data[j - 3].value;
+                uint64_t re_hash_key = hash_64(cur_key);
+#else
+                uint64_t cur_key = newMseg->seg[2]->_[i].data[j].key;
+                uint64_t cur_value = newMseg->seg[2]->_[i].data[j].value;
+                uint64_t re_hash_key = hash_64(cur_key);
+#endif
+
+                uint64_t index_seg = (re_hash_key >> (KEY_BIT - mseg->metadata - 2)) & 1;
+                Segment *new_seg = newMseg->seg[index_seg];
+                segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 0);
+            }
+        }
+    }
+    for (i = 0; i < STASH_SIZE; ++i)
+    {
+        if (newMseg->seg[2]->stash.bitmap & (1 << i))
+        {
+            uint64_t cur_key = newMseg->seg[2]->stash.data[i].key;
+            uint64_t cur_value = newMseg->seg[2]->stash.data[i].value;
+            uint64_t re_hash_key = hash_64(cur_key);
+
+            uint64_t index_seg = (re_hash_key >> (KEY_BIT - mseg->metadata - 2)) & 1;
+            Segment *new_seg = newMseg->seg[index_seg];
+            segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 0);
+        }
+    }
+    pmem_persist(newMseg->seg[0], sizeof(Segment));
+    pmem_persist(newMseg->seg[1], sizeof(Segment));
+    newMseg->metadata = mseg->metadata + 1;
+    //free newMseg->seg[2]
+    newMseg->seg[2] = NULL;
 }
 
 uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
@@ -464,7 +485,7 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
     MulSegment *mseg = dir->mseg[index_dir];
     uint64_t index_seg = (hash_key >> (KEY_BIT - mseg->metadata - 1)) & 1;
     Segment *seg = mseg->seg[index_seg];
-    
+
     int segState = segmentInsert(seg, new_key, new_value, hash_key, 1);
 
     if (segState)
@@ -478,7 +499,7 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         mseg->seg[0] = getNvmBlock(0);
         mseg->seg[1] = getNvmBlock(0);
         //update dir
-        uint64_t i,j;
+        uint64_t i, j;
         if (mseg->metadata < dir->depth)
         {
             uint64_t stride = 1 << (dir->depth - mseg->metadata);
@@ -511,91 +532,91 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         }
 
         //将newMseg->seg[2]分裂到newMseg->seg[0]和newMseg->seg[1]
-        splitSeg(newMseg,mseg);
+        splitSeg(newMseg, mseg);
 
         //将newMseg->seg[2]分裂到newMseg->seg[0]和newMseg->seg[1]
-        splitSeg(mseg,mseg);
+        splitSeg(mseg, mseg);
 
-        return hashInsert(hash,new_key,new_value);
+        return hashInsert(hash, new_key, new_value);
     }
     return 0;
 }
 
 uint64_t bucketSearch(uint16_t index, Bucket &bck, uint64_t key)
 {
-    #ifdef CHEN_VERSION
-    if ((index & (1 << 0)) && bck.line0.data[0].key == key) 
+#ifdef CHEN_VERSION
+    if ((index & (1 << 0)) && bck.line0.data[0].key == key)
     {
         return bck.line0.data[0].value;
     }
-    if ((index & (1 << 1)) && bck.line0.data[1].key == key) 
+    if ((index & (1 << 1)) && bck.line0.data[1].key == key)
     {
         return bck.line0.data[1].value;
     }
-    if ((index & (1 << 2)) && bck.line0.data[2].key == key) 
+    if ((index & (1 << 2)) && bck.line0.data[2].key == key)
     {
         return bck.line0.data[2].value;
     }
-    if ((index & (1 << 3)) && bck.line1.data[3].key == key) 
+    if ((index & (1 << 3)) && bck.line1.data[3].key == key)
     {
         return bck.line1.data[3].value;
     }
-    if ((index & (1 << 4)) && bck.line1.data[4].key == key) 
+    if ((index & (1 << 4)) && bck.line1.data[4].key == key)
     {
         return bck.line1.data[4].value;
     }
-    if ((index & (1 << 5)) && bck.line1.data[5].key == key) 
+    if ((index & (1 << 5)) && bck.line1.data[5].key == key)
     {
         return bck.line1.data[5].value;
     }
-    if ((index & (1 << 6)) && bck.line1.data[6].key == key) 
+    if ((index & (1 << 6)) && bck.line1.data[6].key == key)
     {
         return bck.line1.data[6].value;
     }
-    #else
-    if ((index & (1 << 0)) && bck.data[0].key == key) 
+#else
+    if ((index & (1 << 0)) && bck.data[0].key == key)
     {
         return bck.data[0].value;
     }
-    if ((index & (1 << 1)) && bck.data[1].key == key) 
+    if ((index & (1 << 1)) && bck.data[1].key == key)
     {
         return bck.data[1].value;
     }
-    if ((index & (1 << 2)) && bck.data[2].key == key) 
+    if ((index & (1 << 2)) && bck.data[2].key == key)
     {
         return bck.data[2].value;
     }
-    if ((index & (1 << 3)) && bck.data[3].key == key) 
+    if ((index & (1 << 3)) && bck.data[3].key == key)
     {
         return bck.data[3].value;
     }
-    if ((index & (1 << 4)) && bck.data[4].key == key) 
+    if ((index & (1 << 4)) && bck.data[4].key == key)
     {
         return bck.data[4].value;
     }
-    if ((index & (1 << 5)) && bck.data[5].key == key) 
+    if ((index & (1 << 5)) && bck.data[5].key == key)
     {
         return bck.data[5].value;
     }
-    if ((index & (1 << 6)) && bck.data[6].key == key) 
+    if ((index & (1 << 6)) && bck.data[6].key == key)
     {
         return bck.data[6].value;
     }
-    /*
+/*
     printf("bucketSearch: index: %x, search_key %llx, bck_key: %llx %llx %llx %llx %llx %llx %llx\n", index,
             key, bck.data[0].key, bck.data[1].key, bck.data[2].key, bck.data[3].key, 
             bck.data[4].key, bck.data[5].key, bck.data[6].key, bck.data[7].key);
     */
-    #endif
+#endif
     return 0;
 }
 
 uint16_t getMask(Bucket &bck, uint64_t hash_key)
 {
-    __m128i first_fp = _mm_set_epi8(0, 0, 0, 0, 0, getMetadata(bck).fp[10],getMetadata(bck).fp[9],
-                getMetadata(bck).fp[8],getMetadata(bck).fp[7],getMetadata(bck).fp[6],
-                getMetadata(bck).fp[5],getMetadata(bck).fp[4],getMetadata(bck).fp[3],
-                getMetadata(bck).fp[2],getMetadata(bck).fp[1],getMetadata(bck).fp[0]);
+    __m128i first_fp = _mm_set_epi8(0, 0, 0, 0, 0, getMetadata(bck).fp[10], getMetadata(bck).fp[9],
+                                    getMetadata(bck).fp[8], getMetadata(bck).fp[7], getMetadata(bck).fp[6],
+                                    getMetadata(bck).fp[5], getMetadata(bck).fp[4], getMetadata(bck).fp[3],
+                                    getMetadata(bck).fp[2], getMetadata(bck).fp[1], getMetadata(bck).fp[0]);
     /*
     printf("fp: %x %x %x %x %x %x %x %x %x %x %x\n", 
            getMetadata(bck).fp[0], getMetadata(bck).fp[1], getMetadata(bck).fp[2], 
@@ -624,40 +645,41 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     Segment *seg = mseg->seg[index_seg];
     uint64_t bucket_index = (hash_key >> FP_BIT) & BUCKET_INDEX_MASK;
     Bucket &first_bucket = seg->_[bucket_index];
-    
+
     uint16_t mask = getMask(first_bucket, hash_key);
     uint16_t first_index = mask & getBitmap(first_bucket) & (~getMembership(first_bucket)) & 0x7f;
-    uint16_t first_stash_index = (mask >> 7) & getOverflowBitmap(first_bucket) 
-                                & (~getOverflowMembership(first_bucket)) & 0xf;
+    uint16_t first_stash_index = (mask >> 7) & getOverflowBitmap(first_bucket) & (~getOverflowMembership(first_bucket)) & 0xf;
     uint16_t first_over_index = getOverflowIndex(first_bucket);
     //printf("first index, stash, over: %x %x %x\n", first_index, first_stash_index, first_over_index);
-    if(first_index)
+    if (first_index)
     {
-        uint64_t result = bucketSearch(first_index,first_bucket,key);
-        if(result) return result;
+        uint64_t result = bucketSearch(first_index, first_bucket, key);
+        if (result)
+            return result;
     }
 
-    Bucket &second_bucket = seg->_[(bucket_index + 1)%SEGMENT_SIZE];
+    Bucket &second_bucket = seg->_[(bucket_index + 1) % SEGMENT_SIZE];
     mask = getMask(second_bucket, hash_key);
     uint16_t second_index = mask & getBitmap(second_bucket) & getMembership(second_bucket) & 0x7f;
-    uint16_t second_stash_index = (mask >> 7) & getOverflowBitmap(second_bucket) 
-                                & getOverflowMembership(second_bucket) & 0xf;
+    uint16_t second_stash_index = (mask >> 7) & getOverflowBitmap(second_bucket) & getOverflowMembership(second_bucket) & 0xf;
     uint16_t second_over_index = getOverflowIndex(second_bucket);
     //printf("second index, stash, over: %x %x %x\n", second_index, second_stash_index, second_over_index);
-    if(second_index)
+    if (second_index)
     {
-        uint64_t result = bucketSearch(second_index,second_bucket,key);
-        if(result) return result;
+        uint64_t result = bucketSearch(second_index, second_bucket, key);
+        if (result)
+            return result;
     }
 
     Stash &stash = seg->stash;
     int i;
-    for (i = 0; i < 4; ++i) {
-        if ((first_stash_index & (1 << i)) && stash.data[(first_over_index >> (i << 2)) & 0xf].key == key) 
+    for (i = 0; i < 4; ++i)
+    {
+        if ((first_stash_index & (1 << i)) && stash.data[(first_over_index >> (i << 2)) & 0xf].key == key)
         {
             return stash.data[(first_over_index >> (i << 2)) & 0xf].value;
         }
-        if ((second_stash_index & (1 << i)) && stash.data[(second_over_index >> (i << 2)) & 0xf].key == key) 
+        if ((second_stash_index & (1 << i)) && stash.data[(second_over_index >> (i << 2)) & 0xf].key == key)
         {
             return stash.data[(second_over_index >> (i << 2)) & 0xf].value;
         }
