@@ -549,11 +549,6 @@ uint64_t bucketSearch(uint16_t index, Bucket &bck, uint64_t key)
         return bck.line1.data[6].value;
     }
     #else
-    /*
-    printf("bucketSearch: index: %x, search_key %llx, bck_key: %llx %llx %llx %llx %llx %llx %llx\n", index,
-            key, bck.data[0].key, bck.data[1].key, bck.data[2].key, bck.data[3].key, 
-            bck.data[4].key, bck.data[5].key, bck.data[6].key, bck.data[7].key);
-    */
     if ((index & (1 << 0)) && bck.data[0].key == key) 
     {
         //printf("bucketSearch: 0 %llx\n",bck.data[1].value);
@@ -589,6 +584,11 @@ uint64_t bucketSearch(uint16_t index, Bucket &bck, uint64_t key)
         //printf("bucketSearch: 6 %llx\n",bck.data[1].value);
         return bck.data[6].value;
     }
+    
+    printf("bucketSearch: index: %x, search_key %llx, bck_key: %llx %llx %llx %llx %llx %llx %llx\n", index,
+            key, bck.data[0].key, bck.data[1].key, bck.data[2].key, bck.data[3].key, 
+            bck.data[4].key, bck.data[5].key, bck.data[6].key, bck.data[7].key);
+    
     #endif
     return 0;
 }
