@@ -520,31 +520,31 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
 uint64_t bucketSearch(uint16_t index, Bucket &bck, uint64_t key)
 {
     #ifdef CHEN_VERSION
-    if ((index & (1 << 0) != 0) && bck.line0.data[0].key == key) 
+    if ((index & (1 << 0)) && bck.line0.data[0].key == key) 
     {
         return bck.line0.data[0].value;
     }
-    if ((index & (1 << 1) != 0) && bck.line0.data[1].key == key) 
+    if ((index & (1 << 1)) && bck.line0.data[1].key == key) 
     {
         return bck.line0.data[1].value;
     }
-    if ((index & (1 << 2) != 0) && bck.line0.data[2].key == key) 
+    if ((index & (1 << 2)) && bck.line0.data[2].key == key) 
     {
         return bck.line0.data[2].value;
     }
-    if ((index & (1 << 3) != 0) && bck.line1.data[3].key == key) 
+    if ((index & (1 << 3)) && bck.line1.data[3].key == key) 
     {
         return bck.line1.data[3].value;
     }
-    if ((index & (1 << 4) != 0) && bck.line1.data[4].key == key) 
+    if ((index & (1 << 4)) && bck.line1.data[4].key == key) 
     {
         return bck.line1.data[4].value;
     }
-    if ((index & (1 << 5) != 0) && bck.line1.data[5].key == key) 
+    if ((index & (1 << 5)) && bck.line1.data[5].key == key) 
     {
         return bck.line1.data[5].value;
     }
-    if ((index & (1 << 6) != 0) && bck.line1.data[6].key == key) 
+    if ((index & (1 << 6)) && bck.line1.data[6].key == key) 
     {
         return bck.line1.data[6].value;
     }
@@ -552,37 +552,37 @@ uint64_t bucketSearch(uint16_t index, Bucket &bck, uint64_t key)
     printf("bucketSearch: index: %x, search_key %llx, bck_key: %llx %llx %llx %llx %llx %llx %llx\n", index,
             key, bck.data[0].key, bck.data[1].key, bck.data[2].key, bck.data[3].key, 
             bck.data[4].key, bck.data[5].key, bck.data[6].key, bck.data[7].key);
-    if ((index & (1 << 0) != 0) && bck.data[0].key == key) 
+    if ((index & (1 << 0)) && bck.data[0].key == key) 
     {
         printf("bucketSearch: 0 %llx\n",bck.data[1].value);
         return bck.data[0].value;
     }
-    if ((index & (1 << 1) != 0) && bck.data[1].key == key) 
+    if ((index & (1 << 1)) && bck.data[1].key == key) 
     {
         printf("bucketSearch: 1 %llx\n",bck.data[1].value);
         return bck.data[1].value;
     }
-    if ((index & (1 << 2) != 0) && bck.data[2].key == key) 
+    if ((index & (1 << 2)) && bck.data[2].key == key) 
     {
         printf("bucketSearch: 2 %llx\n",bck.data[1].value);
         return bck.data[2].value;
     }
-    if ((index & (1 << 3) != 0) && bck.data[3].key == key) 
+    if ((index & (1 << 3)) && bck.data[3].key == key) 
     {
         printf("bucketSearch: 3 %llx\n",bck.data[1].value);
         return bck.data[3].value;
     }
-    if ((index & (1 << 4) != 0) && bck.data[4].key == key) 
+    if ((index & (1 << 4)) && bck.data[4].key == key) 
     {
         printf("bucketSearch: 4 %llx\n",bck.data[1].value);
         return bck.data[4].value;
     }
-    if ((index & (1 << 5) != 0) && bck.data[5].key == key) 
+    if ((index & (1 << 5)) && bck.data[5].key == key) 
     {
         printf("bucketSearch: 5 %llx\n",bck.data[1].value);
         return bck.data[5].value;
     }
-    if ((index & (1 << 6) != 0) && bck.data[6].key == key) 
+    if ((index & (1 << 6)) && bck.data[6].key == key) 
     {
         printf("bucketSearch: 6 %llx\n",bck.data[1].value);
         return bck.data[6].value;
