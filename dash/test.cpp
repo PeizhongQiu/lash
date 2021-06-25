@@ -9,15 +9,15 @@ void mfence()
 int main(int argc, char *argv[])
 {
 
-    int test_item_number = atoi(argv[1]);
-    printf("This test insert number is :%d\n", test_item_number);
+    uint64_t test_item_number = atoi(argv[1]);
+    printf("This test insert number is :%llu\n", test_item_number);
 
     Hash hash;
 
     hashInit(&hash, 4);
-    long long *vector;
-    vector = (long long *)malloc(sizeof(long long) * test_item_number);
-    long long i;
+    uint64_t *vector;
+    vector = (uint64_t *)malloc(sizeof(uint64_t) * test_item_number);
+    uint64_t i;
     for (i = 0; i < test_item_number; ++i)
     {
         vector[i] = i;
@@ -26,13 +26,13 @@ int main(int argc, char *argv[])
     srand(time(NULL));
     for (i = 0; i < test_item_number; ++i)
     {
-        long long a = rand() % test_item_number, b = rand() % test_item_number;
-        long long k = vector[a];
+        uint64_t a = rand() % test_item_number, b = rand() % test_item_number;
+        uint64_t k = vector[a];
         vector[a] = vector[b];
         vector[b] = k;
     }
     struct timeval start, end;
-    long long time_consumption = 0;
+    uint64_t time_consumption = 0;
     mfence();
     gettimeofday(&start, NULL);
     for (i = 0; i < test_item_number; ++i)
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     gettimeofday(&end, NULL);
     mfence();
     time_consumption = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
-    printf(" of insert is %lld\n", time_consumption);
+    printf(" of insert is %llu\n", time_consumption);
     printf("insert IOPS is %lf\n", test_item_number * 1000000.0 / time_consumption);
 
     mfence();
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     gettimeofday(&end, NULL);
     mfence();
     time_consumption = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
-    printf(" of search is %lld\n", time_consumption);
+    printf(" of search is %llu\n", time_consumption);
     printf("search IOPS is %lf\n", test_item_number * 1000000.0 / time_consumption);
 
     mfence();
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     gettimeofday(&end, NULL);
     mfence();
     time_consumption = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
-    printf("time_consumption of search is %lld\n", time_consumption);
+    printf("time_consumption of search is %llu\n", time_consumption);
     printf("re-search IOPS is %lf\n", test_item_number * 1000000.0 / time_consumption);
     return 0;
 }

@@ -517,7 +517,7 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
     return 0;
 }
 
-uint64_t bucketSearch(uint16_t index, Bucket bck, uint64_t key)
+uint64_t bucketSearch(uint16_t index, Bucket &bck, uint64_t key)
 {
     #ifdef CHEN_VERSION
     if ((index & (1 << 0) != 0) && bck.line0.data[0].key == key) 
@@ -605,6 +605,7 @@ uint16_t getMask(Bucket &bck, uint64_t hash_key)
 uint64_t hashSearch(Hash *hash, uint64_t key)
 {
     uint64_t hash_key = hash_64(key);
+    printf("search: %llx %llx\n",key,hash_key);
     Dir *dir = hash->dir;
     uint64_t index_dir = hash_key >> (KEY_BIT - dir->depth);
     MulSegment *mseg = dir->mseg[index_dir];
@@ -614,32 +615,34 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     Bucket &first_bucket = seg->_[bucket_index];
     
     uint16_t mask = getMask(first_bucket, hash_key);
-    uint16_t first_index = mask & getBitmap(first_bucket) & (~getMembership(first_bucket)) & 0xff;
+    uint16_t first_index = mask & getBitmap(first_bucket) & (~getMembership(first_bucket)) & 0x7f;
     uint16_t first_stash_index = (mask >> 7) & getOverflowBitmap(first_bucket) 
                                 & (~getOverflowMembership(first_bucket)) & 0xf;
     uint16_t first_over_index = getOverflowIndex(first_bucket);
     
     uint64_t result = bucketSearch(first_index,first_bucket,key);
+    printf("first search: %llx", result);
     if(result) return result;
 
-    Bucket second_bucket = seg->_[(bucket_index + 1)%SEGMENT_SIZE];
+    Bucket &second_bucket = seg->_[(bucket_index + 1)%SEGMENT_SIZE];
     mask = getMask(second_bucket, hash_key);
-    uint16_t second_index = mask & getBitmap(second_bucket) & getMembership(second_bucket) & 0xff;
+    uint16_t second_index = mask & getBitmap(second_bucket) & getMembership(second_bucket) & 0x7f;
     uint16_t second_stash_index = (mask >> 7) & getOverflowBitmap(second_bucket) 
                                 & getOverflowMembership(second_bucket) & 0xf;
     uint16_t second_over_index = getOverflowIndex(second_bucket);
     
     result = bucketSearch(second_index,second_bucket,key);
+    printf("second search: %llx", result);
     if(result) return result;
 
-    Stash stash = seg->stash;
+    Stash &stash = seg->stash;
     int i;
     for (i = 0; i < 4; ++i) {
-        if ((first_stash_index & (1 << i) != 0) && stash.data[(first_over_index >> (i * 4)) & 0xf].key == key) 
+        if ((first_stash_index & (1 << i) != 0) && stash.data[(first_over_index >> (i << 2)) & 0xf].key == key) 
         {
             return stash.data[(first_over_index >> (i * 4)) & 0xf].value;
         }
-        if ((second_stash_index & (1 << i) != 0) && stash.data[(second_over_index >> (i * 4)) & 0xf].key == key) 
+        if ((second_stash_index & (1 << i) != 0) && stash.data[(second_over_index >> (i << 2)) & 0xf].key == key) 
         {
             return stash.data[(second_over_index >> (i * 4)) & 0xf].value;
         }
