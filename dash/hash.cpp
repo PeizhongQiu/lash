@@ -163,7 +163,7 @@ void printStash(Stash *stash)
     hash_64(stash->data[0].key), hash_64(stash->data[1].key), hash_64(stash->data[2].key), hash_64(stash->data[3].key), 
     hash_64(stash->data[4].key), hash_64(stash->data[5].key), hash_64(stash->data[6].key), hash_64(stash->data[7].key), 
     hash_64(stash->data[8].key), hash_64(stash->data[9].key), hash_64(stash->data[10].key), hash_64(stash->data[11].key), 
-    hash_64(stash->data[12].key), hash_64(stash->data[13].key), hash_64(stash->data[14].key), hash_64(stash->data[15].key), );
+    hash_64(stash->data[12].key), hash_64(stash->data[13].key), hash_64(stash->data[14].key), hash_64(stash->data[15].key));
     printf("printStash end\n");
 }
 #ifdef CHEN_VERSION
