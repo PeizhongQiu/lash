@@ -8,12 +8,16 @@
 #include <stdio.h>
 
 #define KEY_BIT 64
-#define BUCKET_INDEX_BIT 8
+#define BUCKET_INDEX_BIT 3
 #define FP_BIT 8
-#define BUCKET_INDEX_MASK 0xff
+#define BUCKET_INDEX_MASK 0x7
 #define SEGMENT_SIZE (1 << BUCKET_INDEX_BIT)
 #define STASH_SIZE 16
 #define BUCKET_SIZE 7
+#define MAX_BUCKET_STASH 4
+#define OVERFLOW_MASK ((1 << MAX_BUCKET_STASH) - 1)
+#define BUCKET_BITMAP_MASK ((1 << BUCKET_SIZE) - 1)
+#define FULL_BUCKET_BITMAP ((1 << BUCKET_SIZE) - 1)
 
 typedef struct Pair
 {
@@ -27,7 +31,7 @@ typedef struct BucketMetadata
     uint8_t bitmap;
     uint8_t membership;
     uint8_t over_bitmap_membership;
-    uint8_t fp[11]; //4 for stash
+    uint8_t fp[BUCKET_SIZE + MAX_BUCKET_STASH]; //4 for stash
 }BucketMetadata;
 
 #ifdef CHEN_VERSION
@@ -55,7 +59,7 @@ typedef struct Bucket
 
 typedef struct Stash
 {
-    Pair data[16];
+    Pair data[STASH_SIZE];
     uint16_t bitmap; 
 }Stash;
 

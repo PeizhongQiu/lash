@@ -20,15 +20,15 @@
 #endif
 
 //get the bitmap of bucket
-#define getBitmap(bck) (getMetadata(bck).bitmap & 0x7f)
+#define getBitmap(bck) (getMetadata(bck).bitmap & BUCKET_BITMAP_MASK)
 //get the membership of bucket
-#define getMembership(bck) (getMetadata(bck).membership & 0x7f)
+#define getMembership(bck) (getMetadata(bck).membership & BUCKET_BITMAP_MASK)
 //get the total number of pairs in bucket
-#define getCount(bck) (__builtin_popcount(getMetadata(bck).bitmap & 0x7f))
+#define getCount(bck) (__builtin_popcount(getMetadata(bck).bitmap & BUCKET_BITMAP_MASK))
 //get the overflow bitmap
-#define getOverflowBitmap(bck) (getMetadata(bck).over_bitmap_membership >> 4)
+#define getOverflowBitmap(bck) (getMetadata(bck).over_bitmap_membership >> MAX_BUCKET_STASH)
 //get the overflow membership
-#define getOverflowMembership(bck) (getMetadata(bck).over_bitmap_membership & 0xf)
+#define getOverflowMembership(bck) (getMetadata(bck).over_bitmap_membership & OVERFLOW_MASK)
 //get the overflow index
 #define getOverflowIndex(bck) (getMetadata(bck).overflowIndex)
 
@@ -46,7 +46,7 @@
     }
 #define setOverflowBitmapMembership(bck, new_bitmap, new_membership)                      \
     {                                                                                     \
-        getMetadata(bck).over_bitmap_membership = ((new_bitmap) << 4) + (new_membership); \
+        getMetadata(bck).over_bitmap_membership = ((new_bitmap) << MAX_BUCKET_STASH) + (new_membership); \
     }
 #define setOverflowIndex(bck, bucket_index, overflow_index)                                                                                                \
     {                                                                                                                                                      \
@@ -357,7 +357,7 @@ int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
     uint8_t bucket_index = __builtin_ctz(~bucket_bitmap);
     setOverflowBitmapMembership(*bck, bucket_bitmap | (1 << bucket_index), getOverflowMembership(*bck) | (membership << index));
     setOverflowIndex(*bck, bucket_index, index);
-    setFp(*bck, bucket_index + 7, hash_key);
+    setFp(*bck, bucket_index + BUCKET_SIZE, hash_key);
     if (ispmem)
     {
         pmem_persist_BucketMetadata(*bck);
@@ -647,8 +647,8 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     Bucket &first_bucket = seg->_[bucket_index];
 
     uint16_t mask = getMask(first_bucket, hash_key);
-    uint16_t first_index = mask & getBitmap(first_bucket) & (~getMembership(first_bucket)) & 0x7f;
-    uint16_t first_stash_index = (mask >> 7) & getOverflowBitmap(first_bucket) & (~getOverflowMembership(first_bucket)) & 0xf;
+    uint16_t first_index = mask & getBitmap(first_bucket) & (~getMembership(first_bucket)) & BUCKET_BITMAP_MASK;
+    uint16_t first_stash_index = (mask >> BUCKET_SIZE) & getOverflowBitmap(first_bucket) & (~getOverflowMembership(first_bucket)) & 0xf;
     uint16_t first_over_index = getOverflowIndex(first_bucket);
     //printf("first index, stash, over: %x %x %x\n", first_index, first_stash_index, first_over_index);
     if (first_index)
@@ -660,8 +660,8 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
 
     Bucket &second_bucket = seg->_[(bucket_index + 1) % SEGMENT_SIZE];
     mask = getMask(second_bucket, hash_key);
-    uint16_t second_index = mask & getBitmap(second_bucket) & getMembership(second_bucket) & 0x7f;
-    uint16_t second_stash_index = (mask >> 7) & getOverflowBitmap(second_bucket) & getOverflowMembership(second_bucket) & 0xf;
+    uint16_t second_index = mask & getBitmap(second_bucket) & getMembership(second_bucket) & BUCKET_BITMAP_MASK;
+    uint16_t second_stash_index = (mask >> BUCKET_SIZE) & getOverflowBitmap(second_bucket) & getOverflowMembership(second_bucket) & 0xf;
     uint16_t second_over_index = getOverflowIndex(second_bucket);
     //printf("second index, stash, over: %x %x %x\n", second_index, second_stash_index, second_over_index);
     if (second_index)
