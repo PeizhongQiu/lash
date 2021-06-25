@@ -316,6 +316,7 @@ uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t members
 int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value, 
                     uint64_t hash_key, uint16_t membership, int ispmem)
 {
+    printf("stash insert...\n");
     uint16_t bitmap = stash->bitmap;
     uint64_t index = __builtin_ctz(~bitmap);
     stash->data[index].key = new_key;
