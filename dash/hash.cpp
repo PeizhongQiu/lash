@@ -549,42 +549,44 @@ uint64_t bucketSearch(uint16_t index, Bucket &bck, uint64_t key)
         return bck.line1.data[6].value;
     }
     #else
+    /*
     printf("bucketSearch: index: %x, search_key %llx, bck_key: %llx %llx %llx %llx %llx %llx %llx\n", index,
             key, bck.data[0].key, bck.data[1].key, bck.data[2].key, bck.data[3].key, 
             bck.data[4].key, bck.data[5].key, bck.data[6].key, bck.data[7].key);
+    */
     if ((index & (1 << 0)) && bck.data[0].key == key) 
     {
-        printf("bucketSearch: 0 %llx\n",bck.data[1].value);
+        //printf("bucketSearch: 0 %llx\n",bck.data[1].value);
         return bck.data[0].value;
     }
     if ((index & (1 << 1)) && bck.data[1].key == key) 
     {
-        printf("bucketSearch: 1 %llx\n",bck.data[1].value);
+        //printf("bucketSearch: 1 %llx\n",bck.data[1].value);
         return bck.data[1].value;
     }
     if ((index & (1 << 2)) && bck.data[2].key == key) 
     {
-        printf("bucketSearch: 2 %llx\n",bck.data[1].value);
+        //printf("bucketSearch: 2 %llx\n",bck.data[1].value);
         return bck.data[2].value;
     }
     if ((index & (1 << 3)) && bck.data[3].key == key) 
     {
-        printf("bucketSearch: 3 %llx\n",bck.data[1].value);
+        //printf("bucketSearch: 3 %llx\n",bck.data[1].value);
         return bck.data[3].value;
     }
     if ((index & (1 << 4)) && bck.data[4].key == key) 
     {
-        printf("bucketSearch: 4 %llx\n",bck.data[1].value);
+        //printf("bucketSearch: 4 %llx\n",bck.data[1].value);
         return bck.data[4].value;
     }
     if ((index & (1 << 5)) && bck.data[5].key == key) 
     {
-        printf("bucketSearch: 5 %llx\n",bck.data[1].value);
+        //printf("bucketSearch: 5 %llx\n",bck.data[1].value);
         return bck.data[5].value;
     }
     if ((index & (1 << 6)) && bck.data[6].key == key) 
     {
-        printf("bucketSearch: 6 %llx\n",bck.data[1].value);
+        //printf("bucketSearch: 6 %llx\n",bck.data[1].value);
         return bck.data[6].value;
     }
     #endif
@@ -597,17 +599,19 @@ uint16_t getMask(Bucket &bck, uint64_t hash_key)
                 getMetadata(bck).fp[8],getMetadata(bck).fp[7],getMetadata(bck).fp[6],
                 getMetadata(bck).fp[5],getMetadata(bck).fp[4],getMetadata(bck).fp[3],
                 getMetadata(bck).fp[2],getMetadata(bck).fp[1],getMetadata(bck).fp[0]);
+    /*
     printf("fp: %x %x %x %x %x %x %x %x %x %x %x\n", 
            getMetadata(bck).fp[0], getMetadata(bck).fp[1], getMetadata(bck).fp[2], 
            getMetadata(bck).fp[3], getMetadata(bck).fp[4], getMetadata(bck).fp[5], 
            getMetadata(bck).fp[6], getMetadata(bck).fp[7], getMetadata(bck).fp[8],
            getMetadata(bck).fp[9], getMetadata(bck).fp[10]);
+    */
     uint8_t search_fp = hash_key & 0xff;
-    printf("search_fp: %x\n", search_fp);
+    //printf("search_fp: %x\n", search_fp);
     __m128i key_data = _mm_set1_epi8(search_fp);
     __m128i rv_mask = _mm_cmpeq_epi8(first_fp, key_data);
     uint16_t mask = _mm_movemask_epi8(rv_mask);
-    printf("mask: %x\n", mask);
+    //printf("mask: %x\n", mask);
     return mask;
 }
 
@@ -615,7 +619,7 @@ uint16_t getMask(Bucket &bck, uint64_t hash_key)
 uint64_t hashSearch(Hash *hash, uint64_t key)
 {
     uint64_t hash_key = hash_64(key);
-    printf("search: %llx %llx\n",key,hash_key);
+    //printf("search: %llx %llx\n",key,hash_key);
     Dir *dir = hash->dir;
     uint64_t index_dir = hash_key >> (KEY_BIT - dir->depth);
     MulSegment *mseg = dir->mseg[index_dir];
@@ -629,9 +633,9 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     uint16_t first_stash_index = (mask >> 7) & getOverflowBitmap(first_bucket) 
                                 & (~getOverflowMembership(first_bucket)) & 0xf;
     uint16_t first_over_index = getOverflowIndex(first_bucket);
-    printf("first index, stash, over: %x %x %x\n", first_index, first_stash_index, first_over_index);
+    //printf("first index, stash, over: %x %x %x\n", first_index, first_stash_index, first_over_index);
     uint64_t result = bucketSearch(first_index,first_bucket,key);
-    printf("first search: %llx\n", result);
+    //printf("first search: %llx\n", result);
     if(result) return result;
 
     Bucket &second_bucket = seg->_[(bucket_index + 1)%SEGMENT_SIZE];
@@ -640,19 +644,19 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     uint16_t second_stash_index = (mask >> 7) & getOverflowBitmap(second_bucket) 
                                 & getOverflowMembership(second_bucket) & 0xf;
     uint16_t second_over_index = getOverflowIndex(second_bucket);
-    printf("second index, stash, over: %x %x %x\n", second_index, second_stash_index, second_over_index);
+    //printf("second index, stash, over: %x %x %x\n", second_index, second_stash_index, second_over_index);
     result = bucketSearch(second_index,second_bucket,key);
-    printf("second search: %llx\n", result);
+    //printf("second search: %llx\n", result);
     if(result) return result;
 
     Stash &stash = seg->stash;
     int i;
     for (i = 0; i < 4; ++i) {
-        if ((first_stash_index & (1 << i) != 0) && stash.data[(first_over_index >> (i << 2)) & 0xf].key == key) 
+        if ((first_stash_index & (1 << i)) && stash.data[(first_over_index >> (i << 2)) & 0xf].key == key) 
         {
             return stash.data[(first_over_index >> (i << 2)) & 0xf].value;
         }
-        if ((second_stash_index & (1 << i) != 0) && stash.data[(second_over_index >> (i << 2)) & 0xf].key == key) 
+        if ((second_stash_index & (1 << i)) && stash.data[(second_over_index >> (i << 2)) & 0xf].key == key) 
         {
             return stash.data[(second_over_index >> (i << 2)) & 0xf].value;
         }
