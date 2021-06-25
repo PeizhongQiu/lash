@@ -136,7 +136,7 @@ void hashInit(Hash *hash, uint64_t depth)
 
 void printBucket(Bucket *bck)
 {
-    printf("printBucket begin\nbitmap: %x, membership: %x, \nfp: %x %x %x %x %x %x %x %x %x %x %x\nover_bitmap_membership: %x %x\n overflowIndex: %x\n",
+    printf("\nprintBucket begin\nbitmap: %x, membership: %x, \nfp: %x %x %x %x %x %x %x %x %x %x %x\nover_bitmap_membership: %x %x\n overflowIndex: %x\n",
     bck->metadata.bitmap, bck->metadata.membership,
     bck->metadata.fp[0], bck->metadata.fp[1], bck->metadata.fp[2], bck->metadata.fp[3],
     bck->metadata.fp[4], bck->metadata.fp[5], bck->metadata.fp[6], bck->metadata.fp[7],
@@ -148,12 +148,12 @@ void printBucket(Bucket *bck)
     printf("hash_key: %llx %llx %llx %llx %llx %llx %llx \n",
     hash_64(bck->data[0].key), hash_64(bck->data[1].key), hash_64(bck->data[2].key), hash_64(bck->data[3].key), 
     hash_64(bck->data[4].key), hash_64(bck->data[5].key), hash_64(bck->data[6].key));
-    printf("printBucket end\n");
+    printf("printBucket end\n\n");
 }
 
 void printStash(Stash *stash)
 {
-    printf("printStash begin\nbitmap: %x\n",stash->bitmap);
+    printf("\nprintStash begin\nbitmap: %x\n",stash->bitmap);
     printf("key: %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx\n",
     stash->data[0].key, stash->data[1].key, stash->data[2].key, stash->data[3].key, stash->data[4].key, 
     stash->data[5].key, stash->data[6].key, stash->data[7].key, stash->data[8].key, stash->data[9].key, 
@@ -164,7 +164,7 @@ void printStash(Stash *stash)
     hash_64(stash->data[4].key), hash_64(stash->data[5].key), hash_64(stash->data[6].key), hash_64(stash->data[7].key), 
     hash_64(stash->data[8].key), hash_64(stash->data[9].key), hash_64(stash->data[10].key), hash_64(stash->data[11].key), 
     hash_64(stash->data[12].key), hash_64(stash->data[13].key), hash_64(stash->data[14].key), hash_64(stash->data[15].key));
-    printf("printStash end\n");
+    printf("printStash end\n\n");
 }
 #ifdef CHEN_VERSION
 uint32_t bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
