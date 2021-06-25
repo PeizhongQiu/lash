@@ -31,7 +31,7 @@
 #define setMembership(bck, new_membership) {getMetadata(bck).membership = new_membership;}
 #define setOverflowBitmapMembership(bck, new_bitmap, new_membership) {getMetadata(bck).over_bitmap_membership = ((new_bitmap) << 4) + (new_membership);}
 #define setOverflowIndex(bck, bucket_index, overflow_index)  \
-    {getMetadata(bck).overflowIndex = (getMetadata(bck).overflowIndex & ~(0xf << (bucket_index << 2))) | (overflow_index << (bucket_index << 2));} 
+    {getMetadata(bck).overflowIndex = (getMetadata(bck).overflowIndex & ~(0xf << ((bucket_index) << 2))) | ((overflow_index) << ((bucket_index) << 2));} 
 
 //hash function
 size_t unaligned_load(const char *p)
@@ -172,7 +172,7 @@ int bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
                     uint64_t hash_key, uint16_t membership, int ispmem)
 {
     uint8_t bitmap = getBitmap(*bck);
-    int index = __builtin_ctz(~bitmap);
+    uint64_t index = __builtin_ctz(~bitmap);
     bck->data[index].key = new_key;
     bck->data[index].value = new_value;
     if(ispmem)
@@ -315,7 +315,7 @@ int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
                     uint64_t hash_key, uint16_t membership, int ispmem)
 {
     uint16_t bitmap = stash->bitmap;
-    int index = __builtin_ctz(~bitmap);
+    uint64_t index = __builtin_ctz(~bitmap);
     stash->data[index].key = new_key;
     stash->data[index].value = new_value;
     if(ispmem)
@@ -639,7 +639,7 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
         uint64_t result = bucketSearch(first_index,first_bucket,key);
         if(result) return result;
     }
-    
+
     Bucket &second_bucket = seg->_[(bucket_index + 1)%SEGMENT_SIZE];
     mask = getMask(second_bucket, hash_key);
     uint16_t second_index = mask & getBitmap(second_bucket) & getMembership(second_bucket) & 0x7f;
