@@ -184,7 +184,7 @@ int bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
     setBitmap(*bck, bitmap | (1 << index));
     setMembership(*bck, (*bck).metadata.membership | (membership << index));
     setFp(*bck, index, hash_key);
-    printf("fp change: %x %p", bck->metadata.fp[index],bck);
+    //printf("fp change: %x %p", bck->metadata.fp[index],bck);
     if(ispmem)
     {
         pmem_persist_BucketMetadata(*bck);
