@@ -153,7 +153,7 @@ void printBucket(Bucket *bck)
 
 void printStash(Stash *stash)
 {
-    printf("printStash begin\nbitmap: %d\n",bck->metadata.bitmap);
+    printf("printStash begin\nbitmap: %d\n",stash->bitmap);
     printf("key: %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx\n",
     stash->data[0].key, stash->data[1].key, stash->data[2].key, stash->data[3].key, stash->data[4].key, 
     stash->data[5].key, stash->data[6].key, stash->data[7].key, stash->data[8].key, stash->data[9].key, 
