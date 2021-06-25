@@ -317,7 +317,7 @@ uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t members
             pmem_persist(&bck->data[bck_index], sizeof(Pair));
         }
         bck_bitmap = bck_bitmap | (1 << bck_index);
-        if ((membership & 1) == 0)
+        if (membership & 1)
         {
             bck_membership = bck_membership | (1 << bck_index);
         }
