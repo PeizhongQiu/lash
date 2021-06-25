@@ -619,7 +619,7 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     uint16_t first_stash_index = (mask >> 7) & getOverflowBitmap(first_bucket) 
                                 & (~getOverflowMembership(first_bucket)) & 0xf;
     uint16_t first_over_index = getOverflowIndex(first_bucket);
-    
+    printf("first index, stash, over: %x %x %x", first_index, first_stash_index, first_over_index);
     uint64_t result = bucketSearch(first_index,first_bucket,key);
     printf("first search: %llx", result);
     if(result) return result;
@@ -630,7 +630,7 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     uint16_t second_stash_index = (mask >> 7) & getOverflowBitmap(second_bucket) 
                                 & getOverflowMembership(second_bucket) & 0xf;
     uint16_t second_over_index = getOverflowIndex(second_bucket);
-    
+    printf("second index, stash, over: %x %x %x", second_index, second_stash_index, second_over_index);
     result = bucketSearch(second_index,second_bucket,key);
     printf("second search: %llx", result);
     if(result) return result;
@@ -640,11 +640,11 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     for (i = 0; i < 4; ++i) {
         if ((first_stash_index & (1 << i) != 0) && stash.data[(first_over_index >> (i << 2)) & 0xf].key == key) 
         {
-            return stash.data[(first_over_index >> (i * 4)) & 0xf].value;
+            return stash.data[(first_over_index >> (i << 2)) & 0xf].value;
         }
         if ((second_stash_index & (1 << i) != 0) && stash.data[(second_over_index >> (i << 2)) & 0xf].key == key) 
         {
-            return stash.data[(second_over_index >> (i * 4)) & 0xf].value;
+            return stash.data[(second_over_index >> (i << 2)) & 0xf].value;
         }
     }
 
