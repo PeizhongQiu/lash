@@ -134,6 +134,38 @@ void hashInit(Hash *hash, uint64_t depth)
     hash->dir = init_dir;
 }
 
+void printBucket(Bucket *bck)
+{
+    printf("printBucket begin\nbitmap: %d, membership: %d, \nfp: %x %x %x %x %x %x %x %x %x %x %x\nover_bitmap_membership: %d %d\n overflowIndex: %d\n",
+    bck->metadata.bitmap, bck->metadata.membership,
+    bck->metadata.fp[0], bck->metadata.fp[1], bck->metadata.fp[2], bck->metadata.fp[3],
+    bck->metadata.fp[4], bck->metadata.fp[5], bck->metadata.fp[6], bck->metadata.fp[7],
+    bck->metadata.fp[8], bck->metadata.fp[9], bck->metadata.fp[10], bck->metadata.over_bitmap_membership, bck->metadata.overflowIndex);
+
+    printf("key: %llx %llx %llx %llx %llx %llx %llx \n",
+    bck->data[0].key, bck->data[1].key, bck->data[2].key, bck->data[3].key, bck->data[4].key, 
+    bck->data[5].key, bck->data[6].key);
+    printf("hash_key: %llx %llx %llx %llx %llx %llx %llx \n",
+    hash_64(bck->data[0].key), hash_64(bck->data[1].key), hash_64(bck->data[2].key), hash_64(bck->data[3].key), 
+    hash_64(bck->data[4].key), hash_64(bck->data[5].key), hash_64(bck->data[6].key));
+    printf("printBucket end\n");
+}
+
+void printStash(Stash *stash)
+{
+    printf("printStash begin\nbitmap: %d\n",bck->metadata.bitmap);
+    printf("key: %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx\n",
+    stash->data[0].key, stash->data[1].key, stash->data[2].key, stash->data[3].key, stash->data[4].key, 
+    stash->data[5].key, stash->data[6].key, stash->data[7].key, stash->data[8].key, stash->data[9].key, 
+    stash->data[10].key, stash->data[11].key, stash->data[12].key, stash->data[13].key, stash->data[14].key, 
+    stash->data[15].key);
+    printf("hash_key: %llx %llx %llx %llx %llx %llx %llx \n",
+    hash_64(stash->data[0].key), hash_64(stash->data[1].key), hash_64(stash->data[2].key), hash_64(stash->data[3].key), 
+    hash_64(stash->data[4].key), hash_64(stash->data[5].key), hash_64(stash->data[6].key), hash_64(stash->data[7].key), 
+    hash_64(stash->data[8].key), hash_64(stash->data[9].key), hash_64(stash->data[10].key), hash_64(stash->data[11].key), 
+    hash_64(stash->data[12].key), hash_64(stash->data[13].key), hash_64(stash->data[14].key), hash_64(stash->data[15].key), );
+    printf("printStash end\n");
+}
 #ifdef CHEN_VERSION
 uint32_t bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
                       uint64_t hash_key, uint16_t membership, int ispmem)
@@ -191,6 +223,8 @@ uint32_t bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
 int bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
                  uint64_t hash_key, uint16_t membership, int ispmem)
 {
+    printf("before insert\n");
+    printBucket(bck);
     uint8_t bitmap = getBitmap(*bck);
     uint32_t index = __builtin_ctz(~bitmap);
     bck->data[index].key = new_key;
@@ -208,6 +242,8 @@ int bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
     {
         pmem_persist_BucketMetadata(*bck);
     }
+    printf("after insert\n");
+    printBucket(bck);
     return 0;
 }
 #endif
@@ -281,10 +317,14 @@ uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t members
 {
     printf("Displace...\n");
     //membership = 0x7f or 0
+    
     uint8_t displace_bitmap = getBitmap(*displace_bck);
     uint8_t bck_membership = getMembership(*bck);
     if (displace_bitmap != 0x7f && bck_membership != membership)
     {
+        printf("before displace\n");
+        printBucket(bck);
+        printBucket(displace_bck);
         uint8_t bck_bitmap = getBitmap(*bck);
         uint32_t bck_index = 0;
         if (membership & 1)
@@ -328,6 +368,9 @@ uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t members
         {
             pmem_persist_BucketMetadata(*bck);
         }
+        printf("after displace\n");
+        printBucket(bck);
+        printBucket(displace_bck);
         return 0;
     }
     return 1;
@@ -338,6 +381,8 @@ int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
                 uint64_t hash_key, uint16_t membership, int ispmem)
 {
     printf("stash insert...\n");
+    printf("before stash\n");
+    printStash(stash);
     uint16_t bitmap = stash->bitmap;
     uint64_t index = __builtin_ctz(~bitmap);
     stash->data[index].key = new_key;
@@ -362,6 +407,8 @@ int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
     {
         pmem_persist_BucketMetadata(*bck);
     }
+    printf("after stash\n");
+    printStash(stash);
     return 0;
 }
 
