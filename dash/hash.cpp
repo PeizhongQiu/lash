@@ -136,7 +136,7 @@ void hashInit(Hash *hash, uint64_t depth)
 
 void printBucket(Bucket *bck)
 {
-    printf("printBucket begin\nbitmap: %d, membership: %d, \nfp: %x %x %x %x %x %x %x %x %x %x %x\nover_bitmap_membership: %d %d\n overflowIndex: %d\n",
+    printf("printBucket begin\nbitmap: %x, membership: %x, \nfp: %x %x %x %x %x %x %x %x %x %x %x\nover_bitmap_membership: %x %x\n overflowIndex: %x\n",
     bck->metadata.bitmap, bck->metadata.membership,
     bck->metadata.fp[0], bck->metadata.fp[1], bck->metadata.fp[2], bck->metadata.fp[3],
     bck->metadata.fp[4], bck->metadata.fp[5], bck->metadata.fp[6], bck->metadata.fp[7],
@@ -153,7 +153,7 @@ void printBucket(Bucket *bck)
 
 void printStash(Stash *stash)
 {
-    printf("printStash begin\nbitmap: %d\n",stash->bitmap);
+    printf("printStash begin\nbitmap: %x\n",stash->bitmap);
     printf("key: %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx\n",
     stash->data[0].key, stash->data[1].key, stash->data[2].key, stash->data[3].key, stash->data[4].key, 
     stash->data[5].key, stash->data[6].key, stash->data[7].key, stash->data[8].key, stash->data[9].key, 
