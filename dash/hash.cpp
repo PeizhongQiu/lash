@@ -684,7 +684,7 @@ uint16_t getMask(Bucket &bck, uint64_t hash_key)
 uint64_t hashSearch(Hash *hash, uint64_t key)
 {
     uint64_t hash_key = hash_64(key);
-    //printf("search: %llx %llx\n",key,hash_key);
+    printf("search: %llx %llx\n",key,hash_key);
     Dir *dir = hash->dir;
     uint64_t index_dir = hash_key >> (KEY_BIT - dir->depth);
     MulSegment *mseg = dir->mseg[index_dir];
@@ -697,7 +697,7 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     uint16_t first_index = mask & getBitmap(first_bucket) & (~getMembership(first_bucket)) & BUCKET_BITMAP_MASK;
     uint16_t first_stash_index = (mask >> BUCKET_SIZE) & getOverflowBitmap(first_bucket) & (~getOverflowMembership(first_bucket)) & 0xf;
     uint16_t first_over_index = getOverflowIndex(first_bucket);
-    //printf("first index, stash, over: %x %x %x\n", first_index, first_stash_index, first_over_index);
+    printf("first index, stash, over: %x %x %x\n", first_index, first_stash_index, first_over_index);
     if (first_index)
     {
         uint64_t result = bucketSearch(first_index, first_bucket, key);
@@ -710,7 +710,7 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     uint16_t second_index = mask & getBitmap(second_bucket) & getMembership(second_bucket) & BUCKET_BITMAP_MASK;
     uint16_t second_stash_index = (mask >> BUCKET_SIZE) & getOverflowBitmap(second_bucket) & getOverflowMembership(second_bucket) & 0xf;
     uint16_t second_over_index = getOverflowIndex(second_bucket);
-    //printf("second index, stash, over: %x %x %x\n", second_index, second_stash_index, second_over_index);
+    printf("second index, stash, over: %x %x %x\n", second_index, second_stash_index, second_over_index);
     if (second_index)
     {
         uint64_t result = bucketSearch(second_index, second_bucket, key);
