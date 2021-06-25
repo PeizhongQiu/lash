@@ -554,30 +554,37 @@ uint64_t bucketSearch(uint16_t index, Bucket &bck, uint64_t key)
             bck.data[4].key, bck.data[5].key, bck.data[6].key, bck.data[7].key);
     if ((index & (1 << 0) != 0) && bck.data[0].key == key) 
     {
+        printf("bucketSearch: 0 %llx\n",bck.data[1].value);
         return bck.data[0].value;
     }
     if ((index & (1 << 1) != 0) && bck.data[1].key == key) 
     {
+        printf("bucketSearch: 1 %llx\n",bck.data[1].value);
         return bck.data[1].value;
     }
     if ((index & (1 << 2) != 0) && bck.data[2].key == key) 
     {
+        printf("bucketSearch: 2 %llx\n",bck.data[1].value);
         return bck.data[2].value;
     }
     if ((index & (1 << 3) != 0) && bck.data[3].key == key) 
     {
+        printf("bucketSearch: 3 %llx\n",bck.data[1].value);
         return bck.data[3].value;
     }
     if ((index & (1 << 4) != 0) && bck.data[4].key == key) 
     {
+        printf("bucketSearch: 4 %llx\n",bck.data[1].value);
         return bck.data[4].value;
     }
     if ((index & (1 << 5) != 0) && bck.data[5].key == key) 
     {
+        printf("bucketSearch: 5 %llx\n",bck.data[1].value);
         return bck.data[5].value;
     }
     if ((index & (1 << 6) != 0) && bck.data[6].key == key) 
     {
+        printf("bucketSearch: 6 %llx\n",bck.data[1].value);
         return bck.data[6].value;
     }
     #endif
