@@ -619,9 +619,9 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     uint16_t first_stash_index = (mask >> 7) & getOverflowBitmap(first_bucket) 
                                 & (~getOverflowMembership(first_bucket)) & 0xf;
     uint16_t first_over_index = getOverflowIndex(first_bucket);
-    printf("first index, stash, over: %x %x %x", first_index, first_stash_index, first_over_index);
+    printf("first index, stash, over: %x %x %x\n", first_index, first_stash_index, first_over_index);
     uint64_t result = bucketSearch(first_index,first_bucket,key);
-    printf("first search: %llx", result);
+    printf("first search: %llx\n", result);
     if(result) return result;
 
     Bucket &second_bucket = seg->_[(bucket_index + 1)%SEGMENT_SIZE];
@@ -630,9 +630,9 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     uint16_t second_stash_index = (mask >> 7) & getOverflowBitmap(second_bucket) 
                                 & getOverflowMembership(second_bucket) & 0xf;
     uint16_t second_over_index = getOverflowIndex(second_bucket);
-    printf("second index, stash, over: %x %x %x", second_index, second_stash_index, second_over_index);
+    printf("second index, stash, over: %x %x %x\n", second_index, second_stash_index, second_over_index);
     result = bucketSearch(second_index,second_bucket,key);
-    printf("second search: %llx", result);
+    printf("second search: %llx\n", result);
     if(result) return result;
 
     Stash &stash = seg->stash;
