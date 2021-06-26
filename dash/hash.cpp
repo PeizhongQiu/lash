@@ -383,6 +383,7 @@ int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
     printf("stash insert...\n");
     printf("before stash\n");
     printStash(stash);
+    printBucket(bck);
     uint16_t bitmap = stash->bitmap;
     uint64_t index = __builtin_ctz(~bitmap);
     stash->data[index].key = new_key;
@@ -400,7 +401,8 @@ int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
 
     uint8_t bucket_bitmap = getOverflowBitmap(*bck);
     uint8_t bucket_index = __builtin_ctz(~bucket_bitmap);
-    setOverflowBitmapMembership(*bck, bucket_bitmap | (1 << bucket_index), getOverflowMembership(*bck) | (membership << index));
+    uint8_t bucket_membership = getOverflowMembership(*bck);
+    setOverflowBitmapMembership(*bck, bucket_bitmap | (1 << bucket_index), bucket_membership | (membership << index));
     setOverflowIndex(*bck, bucket_index, index);
     setFp(*bck, bucket_index + BUCKET_SIZE, hash_key);
     if (ispmem)
@@ -409,6 +411,7 @@ int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
     }
     printf("after stash\n");
     printStash(stash);
+    printBucket(bck);
     return 0;
 }
 
