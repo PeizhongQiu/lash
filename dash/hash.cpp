@@ -582,7 +582,7 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         splitSeg(newMseg, mseg->metadata);
 
         //将newMseg->seg[2]分裂到newMseg->seg[0]和newMseg->seg[1]
-        splitSeg(mseg, mseg);
+        splitSeg(mseg, mseg->metadata);
 
         return hashInsert(hash, new_key, new_value);
     }
