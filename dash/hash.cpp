@@ -512,7 +512,7 @@ void splitSeg(MulSegment *newMseg, uint64_t depth)
             uint64_t cur_value = newMseg->seg[2]->stash.data[i].value;
             uint64_t re_hash_key = hash_64(cur_key);
 
-            uint64_t index_seg = (re_hash_key >> (KEY_BIT - mseg->metadata - 2)) & 1;
+            uint64_t index_seg = (re_hash_key >> (KEY_BIT - depth - 2)) & 1;
             Segment *new_seg = newMseg->seg[index_seg];
             segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 0);
         }
