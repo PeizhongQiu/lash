@@ -402,7 +402,7 @@ int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
     uint8_t bucket_bitmap = getOverflowBitmap(*bck);
     uint8_t bucket_index = __builtin_ctz(~bucket_bitmap);
     uint8_t bucket_membership = getOverflowMembership(*bck);
-    setOverflowBitmapMembership(*bck, bucket_bitmap | (1 << bucket_index), bucket_membership | (membership << index));
+    setOverflowBitmapMembership(*bck, bucket_bitmap | (1 << bucket_index), bucket_membership | (membership << bucket_index));
     setOverflowIndex(*bck, bucket_index, index);
     setFp(*bck, bucket_index + BUCKET_SIZE, hash_key);
     if (ispmem)
