@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 #define KEY_BIT 64
-#define BUCKET_INDEX_BIT 3
+#define BUCKET_INDEX_BIT 8
 #define FP_BIT 8
 #define BUCKET_INDEX_MASK 0x7
 #define SEGMENT_SIZE (1 << BUCKET_INDEX_BIT)

@@ -472,8 +472,8 @@ int segmentInsert(Segment *seg, uint64_t new_key, uint64_t new_value, uint64_t h
 
 void splitSeg(MulSegment *newMseg, uint64_t depth)
 {
-    printf("\nresize...\n");
-    printSegment(newMseg->seg[2]);
+    // printf("\nresize...\n");
+    // printSegment(newMseg->seg[2]);
     uint64_t i, j;
     for (i = 0; i < SEGMENT_SIZE; ++i)
     {
@@ -534,9 +534,9 @@ void splitSeg(MulSegment *newMseg, uint64_t depth)
     newMseg->metadata = depth + 1;
     //free newMseg->seg[2]
     newMseg->seg[2] = NULL;
-    printf("\nresize ok...\n");
-    printSegment(newMseg->seg[0]);
-    printSegment(newMseg->seg[1]);
+    // printf("\nresize ok...\n");
+    // printSegment(newMseg->seg[0]);
+    // printSegment(newMseg->seg[1]);
 }
 
 uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
@@ -665,9 +665,9 @@ uint64_t bucketSearch(uint16_t index, Bucket &bck, uint64_t key)
         return bck.data[6].value;
     }
 
-    printf("bucketSearch: index: %x, search_key %llx, bck_key: %llx %llx %llx %llx %llx %llx %llx\n", index,
-            key, bck.data[0].key, bck.data[1].key, bck.data[2].key, bck.data[3].key, 
-            bck.data[4].key, bck.data[5].key, bck.data[6].key, bck.data[7].key);
+    // printf("bucketSearch: index: %x, search_key %llx, bck_key: %llx %llx %llx %llx %llx %llx %llx\n", index,
+    //         key, bck.data[0].key, bck.data[1].key, bck.data[2].key, bck.data[3].key, 
+    //         bck.data[4].key, bck.data[5].key, bck.data[6].key, bck.data[7].key);
     
 #endif
     return 0;
@@ -699,7 +699,7 @@ uint16_t getMask(Bucket &bck, uint64_t hash_key)
 uint64_t hashSearch(Hash *hash, uint64_t key)
 {
     uint64_t hash_key = hash_64(key);
-    printf("search: %llx %llx\n",key,hash_key);
+    // printf("search: %llx %llx\n",key,hash_key);
     Dir *dir = hash->dir;
     uint64_t index_dir = hash_key >> (KEY_BIT - dir->depth);
     MulSegment *mseg = dir->mseg[index_dir];
@@ -708,12 +708,12 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     uint64_t bucket_index = (hash_key >> FP_BIT) & BUCKET_INDEX_MASK;
 
     Bucket &first_bucket = seg->_[bucket_index];
-    printBucket(&first_bucket);
+    // printBucket(&first_bucket);
     uint16_t mask = getMask(first_bucket, hash_key);
     uint16_t first_index = mask & getBitmap(first_bucket) & (~getMembership(first_bucket)) & BUCKET_BITMAP_MASK;
     uint16_t first_stash_index = (mask >> BUCKET_SIZE) & getOverflowBitmap(first_bucket) & (~getOverflowMembership(first_bucket)) & 0xf;
     uint16_t first_over_index = getOverflowIndex(first_bucket);
-    printf("first index, stash, over: %x %x %x\n", first_index, first_stash_index, first_over_index);
+    // printf("first index, stash, over: %x %x %x\n", first_index, first_stash_index, first_over_index);
     if (first_index)
     {
         uint64_t result = bucketSearch(first_index, first_bucket, key);
@@ -722,12 +722,12 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     }
 
     Bucket &second_bucket = seg->_[(bucket_index + 1) % SEGMENT_SIZE];
-    printBucket(&second_bucket);
+    // printBucket(&second_bucket);
     mask = getMask(second_bucket, hash_key);
     uint16_t second_index = mask & getBitmap(second_bucket) & getMembership(second_bucket) & BUCKET_BITMAP_MASK;
     uint16_t second_stash_index = (mask >> BUCKET_SIZE) & getOverflowBitmap(second_bucket) & getOverflowMembership(second_bucket) & 0xf;
     uint16_t second_over_index = getOverflowIndex(second_bucket);
-    printf("second index, stash, over: %x %x %x\n", second_index, second_stash_index, second_over_index);
+    // printf("second index, stash, over: %x %x %x\n", second_index, second_stash_index, second_over_index);
     if (second_index)
     {
         uint64_t result = bucketSearch(second_index, second_bucket, key);
@@ -737,7 +737,7 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
 
     Stash &stash = seg->stash;
     int i;
-    printStash(&stash);
+    // printStash(&stash);
     for (i = 0; i < 4; ++i)
     {
         if ((first_stash_index & (1 << i)) && stash.data[(first_over_index >> (i << 2)) & 0xf].key == key)

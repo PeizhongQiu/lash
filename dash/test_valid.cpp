@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
     printf("This test insert number is :%llu\n", test_item_number);
     Hash hash;
 
-    hashInit(&hash, 1);
+    hashInit(&hash, 4);
     uint64_t *vector;
     vector = (uint64_t *)malloc(sizeof(uint64_t) * test_item_number);
     uint64_t i;
