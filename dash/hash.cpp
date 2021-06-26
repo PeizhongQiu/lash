@@ -691,8 +691,9 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     uint64_t index_seg = (hash_key >> (KEY_BIT - mseg->metadata - 1)) & 1;
     Segment *seg = mseg->seg[index_seg];
     uint64_t bucket_index = (hash_key >> FP_BIT) & BUCKET_INDEX_MASK;
-    Bucket &first_bucket = seg->_[bucket_index];
 
+    Bucket &first_bucket = seg->_[bucket_index];
+    printBucket(&first_bucket);
     uint16_t mask = getMask(first_bucket, hash_key);
     uint16_t first_index = mask & getBitmap(first_bucket) & (~getMembership(first_bucket)) & BUCKET_BITMAP_MASK;
     uint16_t first_stash_index = (mask >> BUCKET_SIZE) & getOverflowBitmap(first_bucket) & (~getOverflowMembership(first_bucket)) & 0xf;
@@ -706,6 +707,7 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     }
 
     Bucket &second_bucket = seg->_[(bucket_index + 1) % SEGMENT_SIZE];
+    printBucket(&second_bucket);
     mask = getMask(second_bucket, hash_key);
     uint16_t second_index = mask & getBitmap(second_bucket) & getMembership(second_bucket) & BUCKET_BITMAP_MASK;
     uint16_t second_stash_index = (mask >> BUCKET_SIZE) & getOverflowBitmap(second_bucket) & getOverflowMembership(second_bucket) & 0xf;

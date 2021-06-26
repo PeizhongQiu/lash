@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
         for (j = 0; j < i; ++j)
         {
             uint64_t p = hashSearch(&hash, vector[j]);
-            if (p != (j+1))
+            if (p == 0)
             {
                 printf("error in insert %llu %llu!\n", vector[j], j);
                 return -1;
