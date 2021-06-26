@@ -166,6 +166,16 @@ void printStash(Stash *stash)
     hash_64(stash->data[12].key), hash_64(stash->data[13].key), hash_64(stash->data[14].key), hash_64(stash->data[15].key));
     printf("printStash end\n\n");
 }
+
+void printSegment(Segment *seg)
+{
+    uint64_t i;
+    for (i = 0; i < SEGMENT_SIZE; ++i)
+    {
+        printBucket(&seg->_[i]);
+    }
+    printStash(&seg->stash);
+}
 #ifdef CHEN_VERSION
 uint32_t bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
                       uint64_t hash_key, uint16_t membership, int ispmem)
@@ -223,8 +233,8 @@ uint32_t bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
 int bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
                  uint64_t hash_key, uint16_t membership, int ispmem)
 {
-    printf("before insert\n");
-    printBucket(bck);
+    // printf("before insert\n");
+    // printBucket(bck);
     uint8_t bitmap = getBitmap(*bck);
     uint32_t index = __builtin_ctz(~bitmap);
     bck->data[index].key = new_key;
@@ -242,8 +252,8 @@ int bucketInsert(Bucket *bck, uint64_t new_key, uint64_t new_value,
     {
         pmem_persist_BucketMetadata(*bck);
     }
-    printf("after insert\n");
-    printBucket(bck);
+    // printf("after insert\n");
+    // printBucket(bck);
     return 0;
 }
 #endif
@@ -315,15 +325,15 @@ uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t members
 uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t membership, int ispmem,
                               uint64_t new_key, uint64_t new_value, uint64_t hash_key)
 {
-    printf("Displace...\n");
+    // printf("Displace...\n");
     //membership = 0x7f or 0
     
     uint8_t displace_bitmap = getBitmap(*displace_bck);
     uint8_t bck_membership = getMembership(*bck);
     if (displace_bitmap != 0x7f && bck_membership != membership)
     {
-        printf("before displace\n");
-        printBucket(bck);
+        // printf("before displace\n");
+        // printBucket(bck);
         uint8_t bck_bitmap = getBitmap(*bck);
         uint32_t bck_index = 0;
         if (membership & 1)
@@ -367,8 +377,8 @@ uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t members
         {
             pmem_persist_BucketMetadata(*bck);
         }
-        printf("after displace\n");
-        printBucket(bck);
+        // printf("after displace\n");
+        // printBucket(bck);
         return 0;
     }
     return 1;
@@ -378,10 +388,10 @@ uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t members
 int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
                 uint64_t hash_key, uint16_t membership, int ispmem)
 {
-    printf("stash insert...\n");
-    printf("before stash\n");
-    printStash(stash);
-    printBucket(bck);
+    // printf("stash insert...\n");
+    // printf("before stash\n");
+    // printStash(stash);
+    // printBucket(bck);
     uint16_t bitmap = stash->bitmap;
     uint64_t index = __builtin_ctz(~bitmap);
     stash->data[index].key = new_key;
@@ -407,9 +417,9 @@ int stashInsert(Stash *stash, Bucket *bck, uint64_t new_key, uint64_t new_value,
     {
         pmem_persist_BucketMetadata(*bck);
     }
-    printf("after stash\n");
-    printStash(stash);
-    printBucket(bck);
+    // printf("after stash\n");
+    // printStash(stash);
+    // printBucket(bck);
     return 0;
 }
 
@@ -462,7 +472,8 @@ int segmentInsert(Segment *seg, uint64_t new_key, uint64_t new_value, uint64_t h
 
 void splitSeg(MulSegment *newMseg, uint64_t depth)
 {
-    printf("resize...\n");
+    printf("\nresize...\n");
+    printSegment(newMseg->seg[2]);
     uint64_t i, j;
     for (i = 0; i < SEGMENT_SIZE; ++i)
     {
@@ -523,6 +534,9 @@ void splitSeg(MulSegment *newMseg, uint64_t depth)
     newMseg->metadata = depth + 1;
     //free newMseg->seg[2]
     newMseg->seg[2] = NULL;
+    printf("\nresize ok...\n");
+    printSegment(newMseg->seg[0]);
+    printSegment(newMseg->seg[1]);
 }
 
 uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)

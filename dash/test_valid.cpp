@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
         hashInsert(&hash, vector[i], i+1);
         printf("key:%llu insert success\n", vector[i]);
         uint64_t j;
-        for (j = 0; j < i; ++j)
+        for (j = 0; j <= i; ++j)
         {
             uint64_t p = hashSearch(&hash, vector[j]);
             if (p == 0)
