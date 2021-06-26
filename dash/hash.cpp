@@ -459,7 +459,7 @@ int segmentInsert(Segment *seg, uint64_t new_key, uint64_t new_value, uint64_t h
     }
 }
 
-void splitSeg(MulSegment *newMseg, MulSegment *mseg)
+void splitSeg(MulSegment *newMseg, uint64_t depth)
 {
     printf("resize...\n");
     uint64_t i, j;
@@ -479,7 +479,7 @@ void splitSeg(MulSegment *newMseg, MulSegment *mseg)
                 uint64_t re_hash_key = hash_64(cur_key);
 #endif
 
-                uint64_t index_seg = (re_hash_key >> (KEY_BIT - mseg->metadata - 2)) & 1;
+                uint64_t index_seg = (re_hash_key >> (KEY_BIT - depth - 2)) & 1;
                 Segment *new_seg = newMseg->seg[index_seg];
                 segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 0);
             }
@@ -498,7 +498,7 @@ void splitSeg(MulSegment *newMseg, MulSegment *mseg)
                 uint64_t re_hash_key = hash_64(cur_key);
 #endif
 
-                uint64_t index_seg = (re_hash_key >> (KEY_BIT - mseg->metadata - 2)) & 1;
+                uint64_t index_seg = (re_hash_key >> (KEY_BIT - depth - 2)) & 1;
                 Segment *new_seg = newMseg->seg[index_seg];
                 segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 0);
             }
@@ -519,7 +519,7 @@ void splitSeg(MulSegment *newMseg, MulSegment *mseg)
     }
     pmem_persist(newMseg->seg[0], sizeof(Segment));
     pmem_persist(newMseg->seg[1], sizeof(Segment));
-    newMseg->metadata = mseg->metadata + 1;
+    newMseg->metadata = depth + 1;
     //free newMseg->seg[2]
     newMseg->seg[2] = NULL;
 }
@@ -579,7 +579,7 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         }
 
         //将newMseg->seg[2]分裂到newMseg->seg[0]和newMseg->seg[1]
-        splitSeg(newMseg, mseg);
+        splitSeg(newMseg, mseg->metadata);
 
         //将newMseg->seg[2]分裂到newMseg->seg[0]和newMseg->seg[1]
         splitSeg(mseg, mseg);
@@ -720,6 +720,7 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
 
     Stash &stash = seg->stash;
     int i;
+    printStash(&stash);
     for (i = 0; i < 4; ++i)
     {
         if ((first_stash_index & (1 << i)) && stash.data[(first_over_index >> (i << 2)) & 0xf].key == key)
