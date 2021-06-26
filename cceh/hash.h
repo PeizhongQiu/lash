@@ -13,9 +13,7 @@
 #define BUCKET_INDEX_MASK 0xff
 #define SEGMENT_SIZE (1 << BUCKET_INDEX_BIT)
 #define STASH_SIZE 16
-#define BUCKET_SIZE 7
-#define MAX_BUCKET_STASH 4
-#define OVERFLOW_MASK ((1 << MAX_BUCKET_STASH) - 1)
+#define BUCKET_SIZE 4
 #define BUCKET_BITMAP_MASK ((1 << BUCKET_SIZE) - 1)
 #define FULL_BUCKET_BITMAP ((1 << BUCKET_SIZE) - 1)
 
@@ -25,37 +23,12 @@ typedef struct Pair
     uint64_t value;
 } Pair;
 
-typedef struct BucketMetadata
-{
-    uint16_t overflowIndex; //4 bits for the index of each overflow KV
-    uint8_t bitmap;
-    uint8_t membership;
-    uint8_t over_bitmap_membership;
-    uint8_t fp[BUCKET_SIZE + MAX_BUCKET_STASH]; //4 for stash
-}BucketMetadata;
 
-#ifdef CHEN_VERSION
-typedef struct Line0
-{
-    BucketMetadata metadata;
-    Pair data[3];
-}Line0;
-typedef struct Line1
-{
-    Pair data[4];
-}Line1;
 typedef struct Bucket
 {
-    Line0 line0;
-    Line1 line1;
-} Bucket;
-#else
-typedef struct Bucket
-{
-    BucketMetadata metadata;
     Pair data[BUCKET_SIZE];
 } Bucket;
-#endif
+
 
 typedef struct Stash
 {
