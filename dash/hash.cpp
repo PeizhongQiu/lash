@@ -136,7 +136,7 @@ void hashInit(Hash *hash, uint64_t depth)
 
 void printBucket(Bucket *bck)
 {
-    printf("\nprintBucket begin\nbitmap: %x, membership: %x, \nfp: %x %x %x %x %x %x %x %x %x %x %x\nover_bitmap_membership: %x %x\n overflowIndex: %x\n",
+    printf("\nprintBucket begin\nbitmap: %x, membership: %x, \nfp: %x %x %x %x %x %x %x %x %x %x %x\nover_bitmap_membership: %x\n overflowIndex: %x\n",
     bck->metadata.bitmap, bck->metadata.membership,
     bck->metadata.fp[0], bck->metadata.fp[1], bck->metadata.fp[2], bck->metadata.fp[3],
     bck->metadata.fp[4], bck->metadata.fp[5], bck->metadata.fp[6], bck->metadata.fp[7],
