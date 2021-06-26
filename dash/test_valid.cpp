@@ -15,14 +15,14 @@ int main(int argc, char *argv[])
         vector[i] = i;
     }
 
-    srand(time(NULL));
-    for (i = 0; i < test_item_number; ++i)
-    {
-        uint64_t a = rand() % test_item_number, b = rand() % test_item_number;
-        uint64_t k = vector[a];
-        vector[a] = vector[b];
-        vector[b] = k;
-    }
+    // srand(time(NULL));
+    // for (i = 0; i < test_item_number; ++i)
+    // {
+    //     uint64_t a = rand() % test_item_number, b = rand() % test_item_number;
+    //     uint64_t k = vector[a];
+    //     vector[a] = vector[b];
+    //     vector[b] = k;
+    // }
     for (i = 0; i < test_item_number; ++i)
     {
         //v[0] = i % 255;

@@ -324,7 +324,6 @@ uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t members
     {
         printf("before displace\n");
         printBucket(bck);
-        printBucket(displace_bck);
         uint8_t bck_bitmap = getBitmap(*bck);
         uint32_t bck_index = 0;
         if (membership & 1)
@@ -370,7 +369,6 @@ uint32_t bucketInsertDisplace(Bucket *bck, Bucket *displace_bck, uint8_t members
         }
         printf("after displace\n");
         printBucket(bck);
-        printBucket(displace_bck);
         return 0;
     }
     return 1;
