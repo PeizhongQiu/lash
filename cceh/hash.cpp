@@ -64,7 +64,7 @@ void hashInit(Hash *hash, uint64_t depth)
     for (i = 0; i < (1 << depth); ++i)
     {
         MulSegment *newMseg = (MulSegment *)malloc(sizeof(MulSegment));
-        newMseg->metadata = depth;
+        newMseg->local_depth = depth;
 
         Segment *newSeg0 = getNvmBlock(0);
         memset(newSeg0, 0, sizeof(Segment));
@@ -119,7 +119,7 @@ void splitSeg(MulSegment *newMseg, uint64_t depth)
         uint64_t hash_key = hash_64(key);
         if (key != INVALID && (hash_key >> (KEY_BIT - newMseg->local_depth - 1)) == pattern)
         {
-            uint64_t index_seg = (hash_key >> (KEY_BIT - newMseg->metadata - 2)) & 1;
+            uint64_t index_seg = (hash_key >> (KEY_BIT - newMseg->local_depth - 2)) & 1;
             Segment *seg = newMseg->seg[index_seg];
             segmentInsert(seg, key, newMseg->seg[2]->_[i].value, hash_key, 0, depth + 1);
         }
@@ -127,7 +127,7 @@ void splitSeg(MulSegment *newMseg, uint64_t depth)
     
     pmem_persist(newMseg->seg[0], sizeof(Segment));
     pmem_persist(newMseg->seg[1], sizeof(Segment));
-    newMseg->metadata = depth + 1;
+    newMseg->local_depth = depth + 1;
     newMseg->seg[2] = NULL;
 }
 
@@ -137,7 +137,7 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
     Dir *dir = hash->dir;
     uint64_t index_dir = hash_key >> (KEY_BIT - dir->depth);
     MulSegment *mseg = dir->mseg[index_dir];
-    uint64_t index_seg = (hash_key >> (KEY_BIT - mseg->metadata - 1)) & 1;
+    uint64_t index_seg = (hash_key >> (KEY_BIT - mseg->local_depth - 1)) & 1;
     Segment *seg = mseg->seg[index_seg];
 
     uint32_t segState = segmentInsert(seg, new_key, new_value, hash_key, 1, mseg->local_depth);
@@ -161,9 +161,9 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         mseg->seg[1]->pattern = (mseg->seg[2]->pattern << 1) + 1;
         //update dir
         uint64_t i, j;
-        if (mseg->metadata < dir->depth)
+        if (mseg->local_depth < dir->depth)
         {
-            uint64_t stride = 1 << (dir->depth - mseg->metadata);
+            uint64_t stride = 1 << (dir->depth - mseg->local_depth);
             uint64_t loc = index_dir - (index_dir & (stride - 1));
             for (i = 0; i < stride / 2; ++i)
             {
@@ -193,10 +193,10 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         }
 
         //将newMseg->seg[2]分裂到newMseg->seg[0]和newMseg->seg[1]
-        splitSeg(newMseg, mseg->metadata);
+        splitSeg(newMseg, mseg->local_depth);
 
         //将newMseg->seg[2]分裂到newMseg->seg[0]和newMseg->seg[1]
-        splitSeg(mseg, mseg->metadata);
+        splitSeg(mseg, mseg->local_depth);
 
         return hashInsert(hash, new_key, new_value);
     }
@@ -212,7 +212,7 @@ uint64_t hashSearch(Hash *hash, uint64_t key)
     Dir *dir = hash->dir;
     uint64_t index_dir = hash_key >> (KEY_BIT - dir->depth);
     MulSegment *mseg = dir->mseg[index_dir];
-    uint64_t index_seg = (hash_key >> (KEY_BIT - mseg->metadata - 1)) & 1;
+    uint64_t index_seg = (hash_key >> (KEY_BIT - mseg->local_depth - 1)) & 1;
     Segment *seg = mseg->seg[index_seg];
     uint64_t bucket_index = (hash_key & kMask) * kNumPairPerCacheLine;
 
