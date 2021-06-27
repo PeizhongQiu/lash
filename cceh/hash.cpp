@@ -100,17 +100,14 @@ uint32_t segmentInsert(Segment *seg, uint64_t new_key, uint64_t new_value,
             seg->_[slot].value = new_value;
             seg->_[slot].key = new_key;
             pmem_persist(&seg->_[slot],sizeof(Pair));
-            return 1;
+            return 0;
         }
     }
-    return 0;
+    return 1;
 }
 
 void splitSeg(MulSegment *newMseg, uint64_t depth)
-{
-    // printf("\nresize...\n");
-    // printSegment(newMseg->seg[2]);
-    
+{   
     uint64_t pattern = newMseg->seg[2]->pattern;
     uint64_t i;
     for (i = 0; i < kNumSlot; ++i)
@@ -160,7 +157,7 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         mseg->seg[1] = getNvmBlock(0);
         mseg->seg[1]->pattern = (mseg->seg[2]->pattern << 1) + 1;
         //update dir
-        uint64_t i, j;
+        uint64_t i;
         if (mseg->local_depth < dir->depth)
         {
             uint64_t stride = 1 << (dir->depth - mseg->local_depth);
@@ -195,7 +192,7 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         //将newMseg->seg[2]分裂到newMseg->seg[0]和newMseg->seg[1]
         splitSeg(newMseg, mseg->local_depth);
 
-        //将newMseg->seg[2]分裂到newMseg->seg[0]和newMseg->seg[1]
+        //将mseg->seg[2]分裂到mseg->seg[0]和mseg->seg[1]
         splitSeg(mseg, mseg->local_depth);
 
         return hashInsert(hash, new_key, new_value);
