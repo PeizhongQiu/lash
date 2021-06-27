@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     uint64_t *vector;
     vector = (uint64_t *)malloc(sizeof(uint64_t) * test_item_number);
     uint64_t i;
-    for (i = 0; i < test_item_number; ++i)
+    for (i = 1; i <= test_item_number; ++i)
     {
         vector[i] = i;
     }
@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     //     vector[a] = vector[b];
     //     vector[b] = k;
     // }
-    for (i = 0; i < test_item_number; ++i)
+    for (i = 1; i <= test_item_number; ++i)
     {
         //v[0] = i % 255;
         printf("key:%llu insert...\n", vector[i]);

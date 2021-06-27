@@ -67,7 +67,7 @@ typedef struct Segment
 {
     Bucket _[SEGMENT_SIZE];
     Stash stash;
-    uint64_t metadata; //后8位做depth
+    //uint64_t metadata; //后8位做depth
 } Segment;
 
 typedef struct MulSegment

@@ -9,13 +9,15 @@
 
 #define KEY_BIT 64
 #define BUCKET_INDEX_BIT 8
-#define FP_BIT 8
-#define BUCKET_INDEX_MASK 0xff
-#define SEGMENT_SIZE (1 << BUCKET_INDEX_BIT)
-#define STASH_SIZE 16
-#define BUCKET_SIZE 4
-#define BUCKET_BITMAP_MASK ((1 << BUCKET_SIZE) - 1)
-#define FULL_BUCKET_BITMAP ((1 << BUCKET_SIZE) - 1)
+// #define kSegmentBits 8
+#define kMask ((1 << BUCKET_INDEX_BIT) - 1)
+// #define kShift kSegmentBits
+#define kNumPairPerCacheLine 4
+#define kNumCacheLine 4
+// #define kSegmentSize ((1 << kSegmentBits) * sizeof(Pair) * kNumPairPerCacheLine)
+#define kNumSlot ((1 << BUCKET_INDEX_BIT) * kNumPairPerCacheLine)
+// #define key_size (8 * sizeof(size_t))
+#define INVALID 0
 
 typedef struct Pair
 {
@@ -23,30 +25,16 @@ typedef struct Pair
     uint64_t value;
 } Pair;
 
-
-typedef struct Bucket
-{
-    Pair data[BUCKET_SIZE];
-} Bucket;
-
-
-typedef struct Stash
-{
-    Pair data[STASH_SIZE];
-    uint16_t bitmap; 
-}Stash;
-
 typedef struct Segment
 {
-    Bucket _[SEGMENT_SIZE];
-    Stash stash;
-    uint64_t metadata; //后8位做depth
+    Pair _[kNumSlot];
+    uint64_t pattern;
 } Segment;
 
 typedef struct MulSegment
 {
     Segment *seg[3];
-    uint64_t metadata; //后8位做depth
+    uint64_t local_depth; //后8位做depth
 } MulSegment;
 
 typedef struct Dir

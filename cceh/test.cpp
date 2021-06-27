@@ -18,13 +18,13 @@ int main(int argc, char *argv[])
     uint64_t *vector;
     vector = (uint64_t *)malloc(sizeof(uint64_t) * test_item_number);
     uint64_t i;
-    for (i = 0; i < test_item_number; ++i)
+    for (i = 1; i <= test_item_number; ++i)
     {
         vector[i] = i;
     }
 
     srand(time(NULL));
-    for (i = 0; i < test_item_number; ++i)
+    for (i = 1; i <= test_item_number; ++i)
     {
         uint64_t a = rand() % test_item_number, b = rand() % test_item_number;
         uint64_t k = vector[a];
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     uint64_t time_consumption = 0;
     mfence();
     gettimeofday(&start, NULL);
-    for (i = 0; i < test_item_number; ++i)
+    for (i = 1; i <= test_item_number; ++i)
     {
         hashInsert(&hash, vector[i], i+1);
     }
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
     mfence();
     gettimeofday(&start, NULL);
-    for (i = 0; i < test_item_number; ++i)
+    for (i = 1; i <= test_item_number; ++i)
     {
         hashSearch(&hash, vector[i]);
     }
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 
     mfence();
     gettimeofday(&start, NULL);
-    for (i = 0; i < test_item_number; ++i)
+    for (i = 1; i <= test_item_number; ++i)
     {
         hashSearch(&hash, vector[i]);
     }
