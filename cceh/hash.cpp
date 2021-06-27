@@ -150,8 +150,6 @@ uint32_t hashInsert(Hash *hash, uint64_t new_key, uint64_t new_value)
         newMseg->seg[1] = getNvmBlock(0);
         newMseg->seg[1]->pattern = (newMseg->seg[2]->pattern << 1) + 1;
         
-
-        
         mseg->seg[0] = getNvmBlock(0);
         mseg->seg[0]->pattern = mseg->seg[2]->pattern << 1;
         mseg->seg[1] = getNvmBlock(0);

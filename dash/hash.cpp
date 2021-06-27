@@ -494,7 +494,7 @@ void splitSeg(MulSegment *newMseg, uint64_t depth)
 
                 uint64_t index_seg = (re_hash_key >> (KEY_BIT - depth - 2)) & 1;
                 Segment *new_seg = newMseg->seg[index_seg];
-                segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 0);
+                segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 1);
             }
         }
         for (j = 3; j < BUCKET_SIZE; ++j)
@@ -513,7 +513,7 @@ void splitSeg(MulSegment *newMseg, uint64_t depth)
 
                 uint64_t index_seg = (re_hash_key >> (KEY_BIT - depth - 2)) & 1;
                 Segment *new_seg = newMseg->seg[index_seg];
-                segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 0);
+                segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 1);
             }
         }
     }
@@ -527,11 +527,11 @@ void splitSeg(MulSegment *newMseg, uint64_t depth)
 
             uint64_t index_seg = (re_hash_key >> (KEY_BIT - depth - 2)) & 1;
             Segment *new_seg = newMseg->seg[index_seg];
-            segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 0);
+            segmentInsert(new_seg, cur_key, cur_value, re_hash_key, 1);
         }
     }
-    pmem_persist(newMseg->seg[0], sizeof(Segment));
-    pmem_persist(newMseg->seg[1], sizeof(Segment));
+    // pmem_persist(newMseg->seg[0], sizeof(Segment));
+    // pmem_persist(newMseg->seg[1], sizeof(Segment));
     newMseg->metadata = depth + 1;
     //free newMseg->seg[2]
     newMseg->seg[2] = NULL;
