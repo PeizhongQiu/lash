@@ -1,60 +1,13 @@
 #include "hash.h"
-#include "memory_management.h"
 
 //hash function
-size_t unaligned_load(const char *p)
-{
-    size_t result;
-    __builtin_memcpy(&result, p, sizeof(result));
-    return result;
-}
-size_t load_bytes(const char *p, int n)
-{
-    size_t result = 0;
-    --n;
-    do
-        result = (result << 8) + (unsigned char)(p[n]);
-    while (--n >= 0);
-    return result;
-}
-size_t shift_mix(size_t v)
-{
-    return v ^ (v >> 47);
-}
-size_t _Hash_bytes(const void *ptr, size_t len, size_t seed)
-{
-    static const size_t mul = (((size_t)0xc6a4a793UL) << 32UL) + (size_t)0x5bd1e995UL;
-    const char *const buf = (const char *)(ptr);
-
-    // Remove the bytes not divisible by the sizeof(size_t).  This
-    // allows the main loop to process the data as 64-bit integers.
-    const size_t len_aligned = len & ~(size_t)0x7;
-    const char *const end = buf + len_aligned;
-    size_t hash = seed ^ (len * mul);
-    const char *p = buf;
-    for (; p != end; p += 8)
-    {
-        const size_t data = shift_mix(unaligned_load(p) * mul) * mul;
-        hash ^= data;
-        hash *= mul;
-    }
-    if ((len & 0x7) != 0)
-    {
-        const size_t data = load_bytes(end, len & 0x7);
-        hash ^= data;
-        hash *= mul;
-    }
-    hash = shift_mix(hash) * mul;
-    hash = shift_mix(hash);
-    return hash;
-}
 size_t hash_64(size_t val)
 {
-    return _Hash_bytes(&val, sizeof(size_t), 0xc70697UL);
+    return std::_Hash_bytes(&val, sizeof(size_t), 0xc70697UL);
     //0xc70f6907UL
 }
 
-void hashInit(Hash *hash, uint64_t depth)
+void Hash::hashInit(uint64_t depth)
 {
     Dir *init_dir = (Dir *)malloc(sizeof(Dir));
     init_dir->depth = depth;
@@ -99,8 +52,7 @@ uint32_t segmentInsert(Segment *seg, uint64_t new_key, uint64_t new_value,
         {
             seg->_[slot].value = new_value;
             seg->_[slot].key = new_key;
-            if(ispmem)
-                pmem_persist(&seg->_[slot],sizeof(Pair));
+            pmem_persist(&seg->_[slot],sizeof(Pair));
             return 0;
         }
     }
